@@ -9,46 +9,32 @@ import java.util.UUID;        // Per l'identificatore pubblico
 @Table(name = "games") // Specifica il nome della tabella nel database
 public class Game {
 
-    @Id // Indica che questo campo è la chiave primaria della tabella
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Specifica che il valore dell'ID sarà generato automaticamente dal database (es. auto-increment)
-    private Long id; // ID interno del database, solitamente non esposto esternamente
-
-    @Column(name = "uuid", unique = true, nullable = false, updatable = false, columnDefinition = "UUID")
-    // Mappa a una colonna 'uuid'
-    // unique = true: ogni UUID deve essere unico
-    // nullable = false: il campo non può essere nullo
-    // updatable = false: il valore non può essere modificato dopo la creazione
-    // columnDefinition = "UUID": Suggerisce al database il tipo di colonna (utile per PostgreSQL)
-    private UUID uuid; // Identificatore pubblico e immutabile del gioco
+    @Id // Indica che questo campo è la chiave primaria
+    // `columnDefinition = "UUID"` è importante per H2 e PostgreSQL
+    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "UUID")
+    private UUID id;
 
     @Column(name = "title", nullable = false, length = 100)
-    // nullable = false: Il titolo non può essere nullo
-    // length = 100: Limita la lunghezza del titolo a 100 caratteri
-    private String title; // Titolo del gioco
+    private String title;
 
     @Column(name = "genre", nullable = false, length = 50)
-    private String genre; // Genere del gioco (es. "RPG", "Action", "Strategy")
+    private String genre;
 
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
-    // precision = 10: Il numero totale di cifre è 10
-    // scale = 2: Il numero di cifre dopo la virgola è 2 (es. 12345678.99)
-    private BigDecimal price; // Prezzo del gioco (BigDecimal è preferibile per valute per evitare problemi di precisione dei float/double)
+    private BigDecimal price;
 
     @Column(name = "release_date", nullable = false)
-    private LocalDate releaseDate; // Data di rilascio del gioco
+    private LocalDate releaseDate;
 
     @Column(name = "developer", nullable = false, length = 100)
-    private String developer; // Sviluppatore del gioco
+    private String developer;
 
     @Column(name = "publisher", nullable = false, length = 100)
-    private String publisher; // Editore del gioco
+    private String publisher;
 
-    // --- Costruttori ---
-    // Costruttore senza argomenti: richiesto da JPA
     public Game() {
     }
 
-    // Costruttore con argomenti per facilitare la creazione di istanze di Game
     public Game(String title, String genre, BigDecimal price, LocalDate releaseDate, String developer, String publisher) {
         this.title = title;
         this.genre = genre;
@@ -58,30 +44,20 @@ public class Game {
         this.publisher = publisher;
     }
 
-    // --- Metodo per generare l'UUID prima della persistenza ---
-    @PrePersist // Questa annotazione fa sì che il metodo venga eseguito prima che l'entità venga salvata per la prima volta nel database
-    public void generateUuid() {
-        if (this.uuid == null) { // Genera un nuovo UUID solo se non è già stato impostato
-            this.uuid = UUID.randomUUID(); // Genera un UUID casuale
+    @PrePersist // Questo metodo viene eseguito automaticamente prima di salvare una nuova entità nel DB
+    public void generateId() {
+        if (this.id == null) {
+            this.id = UUID.randomUUID(); // Genera un UUID per l'ID primario
         }
     }
 
-    // --- Getter e Setter per tutti i campi ---
-    // Questi metodi permettono di accedere e modificare i valori dei campi dell'entità
-    public Long getId() {
+    // Getter e Setter
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
-    }
-
-    public UUID getUuid() {
-        return uuid;
-    }
-
-    public void setUuid(UUID uuid) {
-        this.uuid = uuid;
     }
 
     public String getTitle() {
@@ -136,7 +112,6 @@ public class Game {
     public String toString() {
         return "Game{" +
                "id=" + id +
-               ", uuid=" + uuid +
                ", title='" + title + '\'' +
                ", genre='" + genre + '\'' +
                ", price=" + price +

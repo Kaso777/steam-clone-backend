@@ -7,23 +7,20 @@ import java.util.UUID;
 @Table(name = "users")
 public class User {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Id // Indica che questo campo è la chiave primaria
+    // `columnDefinition = "UUID"` è importante per H2 e PostgreSQL, dice al DB che tipo di colonna è.
+    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "UUID")
+    private UUID id;
 
-    @Column(name = "uuid", unique = true, nullable = false, updatable = false, columnDefinition = "UUID")
-    private UUID uuid; 
-    
-    @Column(name = "username", unique = true, nullable = false)
+    @Column(name = "username", unique = true, nullable = false, length = 50)
     private String username;
 
-    @Column(name = "email", unique = true, nullable = false)
+    @Column(name = "email", unique = true, nullable = false, length = 100)
     private String email;
 
-    @Column(name = "password")
-    private String password; 
+    @Column(name = "password", nullable = false, length = 255)
+    private String password;
 
-    // --- Costruttori ---
     public User() {
     }
 
@@ -33,30 +30,25 @@ public class User {
         this.password = password;
     }
 
-    // --- Metodo per generare l'UUID prima della persistenza ---
-    @PrePersist
-    public void generateUuid() {
-        if (this.uuid == null) {
-            this.uuid = UUID.randomUUID();
+    @PrePersist // Questo metodo viene eseguito automaticamente prima di salvare una nuova entità nel DB
+    public void generateId() {
+        if (this.id == null) {
+            this.id = UUID.randomUUID(); // Genera un UUID per l'ID primario
         }
     }
 
-    // --- Getter ---
-    public Long getId() {
+    // Getter e Setter per il nuovo ID (UUID)
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
-    public UUID getUuid() {
-        return uuid;
-    }
-
-    public void setUuid(UUID uuid) {
-        this.uuid = uuid;
-    }
+    // Se avevi i getter/setter per il vecchio campo `uuid`, rimuovili:
+    // public UUID getUuid() { return uuid; }
+    // public void setUuid(UUID uuid) { this.uuid = uuid; }
 
     public String getUsername() {
         return username;
@@ -85,11 +77,9 @@ public class User {
     @Override
     public String toString() {
         return "User{" +
-                "id=" + id +
-                ", uuid=" + uuid +
-                ", username='" + username + '\'' +
-                ", email='" + email + '\'' +
-                ", password='" + password + '\'' +  // Per il momento la password è visibile per debug, ma poi verrà gestita in modo sicuro
-                '}';
+               "id=" + id +
+               ", username='" + username + '\'' +
+               ", email='" + email + '\'' +
+               '}';
     }
 }
