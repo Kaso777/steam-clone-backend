@@ -44,4 +44,4 @@ public interface UserGameRepository extends JpaRepository<UserGame, UserGameId> 
      * @param gameUuid L'UUID del gioco.
      */
     void deleteByIdUserUuidAndIdGameUuid(UUID userUuid, UUID gameUuid);
-}
+} 

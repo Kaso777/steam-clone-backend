@@ -16,134 +16,128 @@ import java.util.List; // Per lavorare con liste di oggetti
 import java.util.UUID; // Per lavorare con gli UUID
 import java.util.stream.Collectors; // Per facilitare la trasformazione di stream in liste
 
-/**
- * Implementazione concreta dell'interfaccia UserService.
- * Contiene la logica di business effettiva per la gestione degli utenti.
- */
-@Service // Questa annotazione rende UserServiceImpl un "componente" gestito da Spring.
-         // Spring creerà un'istanza di questa classe e la inietterà dove è richiesta.
-public class UserServiceImpl implements UserService { // Implementa il contratto definito nell'interfaccia UserService
+@Service // Marca la classe come un Service di Spring, gestito dal contenitore IoC
+public class UserServiceImpl implements UserService {
 
-    private final UserRepository userRepository; // Dichiarazione di una dipendenza dal UserRepository
+    private final UserRepository userRepository; // Iniezione della dipendenza del UserRepository
 
-    /**
-     * Costruttore per l'iniezione delle dipendenze (Dependency Injection).
-     * Spring rileverà automaticamente questo costruttore e fornirà un'istanza
-     * di UserRepository quando creerà un'istanza di UserServiceImpl.
-     * @param userRepository L'istanza del repository per accedere al database.
-     */
+    // Costruttore per l'iniezione delle dipendenze (Spring inietta UserRepository qui)
     public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
     /**
-     * Implementazione del metodo per creare un nuovo utente.
-     * @param userRequestDTO DTO contenente i dati dell'utente da creare.
-     * @return UserResponseDTO contenente i dati dell'utente creato.
+     * Crea un nuovo utente nel sistema.
+     * Applica controlli di unicità per username ed email prima di salvare.
+     * @param userRequestDTO DTO contenente i dati del nuovo utente.
+     * @return UserResponseDTO con i dati dell'utente creato e il suo UUID.
+     * @throws IllegalStateException Se username o email sono già in uso.
      */
-    @Override // Indica che questo metodo implementa un metodo dell'interfaccia UserService
-    @Transactional // Questa annotazione rende il metodo transazionale. Se qualsiasi operazione database
-                   // all'interno di questo metodo fallisce, l'intera transazione viene "rollbatta" (annullata),
-                   // garantendo l'integrità dei dati. E' cruciale per le operazioni di scrittura.
+    @Override // Indica che questo metodo implementa un metodo dall'interfaccia UserService
+    @Transactional // Ogni operazione all'interno di questo metodo è gestita come una singola transazione database
     public UserResponseDTO createUser(UserRequestDTO userRequestDTO) {
-        // 1. Mappa il DTO di richiesta (UserRequestDTO) all'entità (User).
-        //    Questo separa la rappresentazione dei dati dell'API dalla rappresentazione del database.
+        // Controllo per evitare username duplicati
+        if (userRepository.existsByUsername(userRequestDTO.getUsername())) {
+            throw new IllegalStateException("Username is already taken.");
+        }
+        // Controllo per evitare email duplicate
+        if (userRepository.existsByEmail(userRequestDTO.getEmail())) {
+            throw new IllegalStateException("Email is already registered.");
+        }
+
         User user = new User(); // Crea una nuova istanza dell'entità User
-        user.setUsername(userRequestDTO.getUsername()); // Copia lo username dal DTO all'entità
-        user.setEmail(userRequestDTO.getEmail());       // Copia l'email
-        user.setPassword(userRequestDTO.getPassword()); // Copia la password (NOTA: Attualmente salvata in chiaro.
-                                                        // Verrà crittografata con l'hashing in futuro per sicurezza).
+        user.setUsername(userRequestDTO.getUsername());
+        user.setEmail(userRequestDTO.getEmail());
+        user.setPassword(userRequestDTO.getPassword()); // NOTA: In un'applicazione reale, qui andrebbe l'hashing della password!
 
-        // 2. Salva l'entità User nel database tramite il repository.
-        //    Il metodo save() di JpaRepository gestirà l'inserimento nel DB.
-        //    L'UUID dell'utente verrà generato automaticamente dall'entità grazie a @PrePersist.
-        user = userRepository.save(user);
+        // Salva l'utente nel database. Il metodo @PrePersist in User.java genererà l'UUID per 'id'.
+        User savedUser = userRepository.save(user);
+        // Converte l'entità salvata in un DTO di risposta e lo restituisce.
+        // Il DTO prenderà l'UUID dal campo 'id' dell'utente, che ora è il suo identificatore pubblico.
+        return new UserResponseDTO(savedUser);
+    }
 
-        // 3. Mappa l'entità User salvata (che ora ha l'ID e l'UUID) a un DTO di risposta (UserResponseDTO).
-        //    Questo DTO è ciò che verrà inviato indietro al client.
+    /**
+     * Recupera un utente tramite il suo UUID.
+     * @param uuid L'UUID dell'utente da recuperare.
+     * @return UserResponseDTO con i dati dell'utente.
+     * @throws ResourceNotFoundException Se l'utente con l'UUID specificato non viene trovato.
+     */
+    @Override
+    @Transactional(readOnly = true) // La transazione è in sola lettura, ottimizzata per le query
+    public UserResponseDTO getUserByUuid(UUID uuid) {
+        // CAMBIAMENTO CHIAVE: Utilizza findById del UserRepository.
+        // Poiché ora UUID è l'ID primario dell'entità User, findById funziona direttamente.
+        User user = userRepository.findById(uuid)
+                // Se l'utente non viene trovato, lancia un'eccezione ResourceNotFoundException.
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with UUID: " + uuid));
+        // Converte l'entità trovata in un DTO di risposta.
         return new UserResponseDTO(user);
     }
 
     /**
-     * Implementazione del metodo per recuperare tutti gli utenti.
-     * @return Una lista di UserResponseDTO.
+     * Recupera tutti gli utenti presenti nel sistema.
+     * @return Lista di UserResponseDTO di tutti gli utenti.
      */
     @Override
+    @Transactional(readOnly = true)
     public List<UserResponseDTO> getAllUsers() {
-        // 1. Recupera tutte le entità User dal database.
-        //    findAll() è un metodo fornito da JpaRepository.
-        return userRepository.findAll()
-                // 2. Converte la Collection di entità User in uno Stream.
-                .stream()
-                // 3. Mappa ogni entità User recuperata a una nuova istanza di UserResponseDTO.
-                //    'UserResponseDTO::new' è un method reference che indica di chiamare il costruttore
-                //    di UserResponseDTO che accetta un oggetto User come parametro.
+        // Recupera tutti gli utenti dal database
+        return userRepository.findAll().stream()
+                // Mappa ogni entità User in un UserResponseDTO
                 .map(UserResponseDTO::new)
-                // 4. Raccoglie tutti i DTO trasformati in una nuova lista.
+                // Raccoglie i DTO in una lista
                 .collect(Collectors.toList());
     }
 
     /**
-     * Implementazione del metodo per recuperare un utente tramite UUID.
-     * @param uuid L'UUID dell'utente da cercare.
-     * @return UserResponseDTO dell'utente trovato.
-     */
-    @Override
-    public UserResponseDTO getUserByUuid(UUID uuid) {
-        // 1. Cerca l'utente nel database tramite il suo UUID.
-        //    findByUuid() è il metodo personalizzato che abbiamo aggiunto al UserRepository.
-        //    Restituisce un Optional<User> perché l'utente potrebbe non esistere.
-        User user = userRepository.findByUuid(uuid)
-                // 2. Se l'Optional è vuoto (utente non trovato), lancia la tua eccezione personalizzata.
-                //    Il GlobalExceptionHandler intercetterà questa eccezione e genererà una risposta 404.
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with UUID: " + uuid));
-        
-        // 3. Se l'utente è stato trovato, lo mappa a un UserResponseDTO e lo restituisce.
-        return new UserResponseDTO(user);
-    }
-
-    /**
-     * Implementazione del metodo per aggiornare un utente.
+     * Aggiorna i dati di un utente esistente.
+     * Applica controlli di unicità per username ed email, escludendo l'utente corrente.
      * @param uuid L'UUID dell'utente da aggiornare.
-     * @param userRequestDTO DTO con i dati aggiornati.
-     * @return UserResponseDTO dell'utente aggiornato.
+     * @param userRequestDTO DTO contenente i nuovi dati dell'utente.
+     * @return UserResponseDTO con i dati dell'utente aggiornato.
+     * @throws ResourceNotFoundException Se l'utente con l'UUID specificato non viene trovato.
+     * @throws IllegalStateException Se il nuovo username o email sono già in uso da un altro utente.
      */
     @Override
-    @Transactional // Anche l'aggiornamento è un'operazione di scrittura che necessita di transazione.
+    @Transactional
     public UserResponseDTO updateUser(UUID uuid, UserRequestDTO userRequestDTO) {
-        // 1. Cerca l'utente esistente da aggiornare.
-        //    Se non trovato, lancia ResourceNotFoundException.
-        User existingUser = userRepository.findByUuid(uuid)
+        // CAMBIAMENTO CHIAVE: Recupera l'utente esistente tramite findById
+        User existingUser = userRepository.findById(uuid)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with UUID: " + uuid));
 
-        // 2. Aggiorna i campi dell'entità esistente con i dati dal DTO di richiesta.
+        // Controlla se il nuovo username è già preso da un *altro* utente.
+        // Se il username è lo stesso dell'utente corrente, non c'è bisogno di controllare.
+        if (!existingUser.getUsername().equals(userRequestDTO.getUsername()) && userRepository.existsByUsername(userRequestDTO.getUsername())) {
+            throw new IllegalStateException("Username is already taken.");
+        }
+        // Controlla se la nuova email è già registrata da un *altro* utente.
+        if (!existingUser.getEmail().equals(userRequestDTO.getEmail()) && userRepository.existsByEmail(userRequestDTO.getEmail())) {
+            throw new IllegalStateException("Email is already registered.");
+        }
+
+        // Aggiorna i campi dell'utente esistente con i nuovi dati dal DTO
         existingUser.setUsername(userRequestDTO.getUsername());
         existingUser.setEmail(userRequestDTO.getEmail());
-        existingUser.setPassword(userRequestDTO.getPassword()); // NOTA: La password non è ancora crittografata qui.
+        existingUser.setPassword(userRequestDTO.getPassword()); // NOTA: Qui andrebbe gestito l'aggiornamento sicuro della password
 
-        // 3. Salva l'entità aggiornata nel database.
-        //    Il metodo save() di JpaRepository, se l'entità ha già un ID, effettua un UPDATE.
-        existingUser = userRepository.save(existingUser);
-
-        // 4. Mappa l'entità aggiornata a un DTO di risposta e la restituisce.
-        return new UserResponseDTO(existingUser);
+        User updatedUser = userRepository.save(existingUser); // Salva le modifiche nel database
+        return new UserResponseDTO(updatedUser); // Restituisce l'utente aggiornato come DTO
     }
 
     /**
-     * Implementazione del metodo per eliminare un utente.
+     * Elimina un utente tramite il suo UUID.
      * @param uuid L'UUID dell'utente da eliminare.
+     * @throws ResourceNotFoundException Se l'utente con l'UUID specificato non viene trovato.
      */
     @Override
-    @Transactional // Le operazioni di eliminazione devono essere transazionali.
+    @Transactional
     public void deleteUser(UUID uuid) {
-        // 1. Prima di tentare di eliminare, verifica se l'utente esiste.
-        //    Usiamo existsByUuid() per efficienza (potrebbe essere più veloce di findByUuid se non serve l'oggetto completo).
-        if (!userRepository.existsByUuid(uuid)) {
-            // 2. Se l'utente non esiste, lancia ResourceNotFoundException.
+        // CAMBIAMENTO CHIAVE: Prima di eliminare, controlla se l'utente esiste con existsById.
+        if (!userRepository.existsById(uuid)) {
             throw new ResourceNotFoundException("User not found with UUID: " + uuid);
         }
-        // 3. Se l'utente esiste, procedi con l'eliminazione tramite il suo UUID.
-        //    deleteByUuid() è il metodo personalizzato che abbiamo aggiunto al UserRepository.
-        userRepository.deleteByUuid(uuid);
+        // Elimina l'utente dal database tramite il suo UUID.
+        userRepository.deleteById(uuid);
     }
 }

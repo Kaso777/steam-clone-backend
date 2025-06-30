@@ -72,4 +72,4 @@ public class ErrorResponseDTO {
     public void setPath(String path) {
         this.path = path;
     }
-}
+} 

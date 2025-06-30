@@ -1,12 +1,12 @@
 package itsprodigi.matteocasini.steam_clone_backend.dto;
 
-import itsprodigi.matteocasini.steam_clone_backend.model.Game; // Importa la tua entità Game
+import itsprodigi.matteocasini.steam_clone_backend.model.Game;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
 public class GameResponseDTO {
-    private UUID uuid;
+    private UUID uuid; // Questo campo nel DTO manterrà il nome 'uuid' per coerenza API esterna
     private String title;
     private String genre;
     private BigDecimal price;
@@ -14,13 +14,13 @@ public class GameResponseDTO {
     private String developer;
     private String publisher;
 
-    // Costruttore vuoto
     public GameResponseDTO() {
     }
 
     // Costruttore: prende un'entità Game e la mappa al DTO
+    // Questo costruttore è utile per convertire un'entità Game in un DTO
     public GameResponseDTO(Game game) {
-        this.uuid = game.getUuid();
+        this.uuid = game.getId(); // Mappa l'ID (UUID) dell'entità all'UUID del DTO
         this.title = game.getTitle();
         this.genre = game.getGenre();
         this.price = game.getPrice();
@@ -29,7 +29,8 @@ public class GameResponseDTO {
         this.publisher = game.getPublisher();
     }
 
-    // Costruttore con tutti i campi
+    // Costruttore con tutti i campi (se lo avevi, puoi tenerlo)
+    // Questo costruttore è utile per creare un DTO direttamente con i valori
     public GameResponseDTO(UUID uuid, String title, String genre, BigDecimal price, LocalDate releaseDate, String developer, String publisher) {
         this.uuid = uuid;
         this.title = title;
@@ -40,7 +41,7 @@ public class GameResponseDTO {
         this.publisher = publisher;
     }
 
-    // Getter e Setter
+    // Getters e Setters
     public UUID getUuid() {
         return uuid;
     }
@@ -100,13 +101,13 @@ public class GameResponseDTO {
     @Override
     public String toString() {
         return "GameResponseDTO{" +
-                "uuid=" + uuid +
-                ", title='" + title + '\'' +
-                ", genre='" + genre + '\'' +
-                ", price=" + price +
-                ", releaseDate=" + releaseDate +
-                ", developer='" + developer + '\'' +
-                ", publisher='" + publisher + '\'' +
-                '}';
+               "uuid=" + uuid +
+               ", title='" + title + '\'' +
+               ", genre='" + genre + '\'' +
+               ", price=" + price +
+               ", releaseDate=" + releaseDate +
+               ", developer='" + developer + '\'' +
+               ", publisher='" + publisher + '\'' +
+               '}';
     }
 }

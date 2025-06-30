@@ -70,4 +70,4 @@ public class GlobalExceptionHandler {
         // Potresti voler loggare 'ex' qui per scopi di debug, ma non esporre troppi dettagli al client
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-}
+} 

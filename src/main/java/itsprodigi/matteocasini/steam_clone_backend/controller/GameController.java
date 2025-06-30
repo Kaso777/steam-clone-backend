@@ -90,4 +90,4 @@ public class GameController {
         gameService.deleteGame(uuid);
         return ResponseEntity.noContent().build(); // 204 No Content
     }
-}
+} 

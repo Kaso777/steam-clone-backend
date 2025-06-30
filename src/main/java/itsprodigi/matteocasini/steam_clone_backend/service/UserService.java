@@ -57,4 +57,4 @@ public interface UserService {
      * @param uuid L'UUID dell'utente da eliminare.
      */
     void deleteUser(UUID uuid);
-}
+} 

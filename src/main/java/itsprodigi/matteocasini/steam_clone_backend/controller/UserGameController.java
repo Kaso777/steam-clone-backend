@@ -76,4 +76,4 @@ public class UserGameController {
         userGameService.removeGameFromUserLibrary(userUuid, gameUuid);
         return ResponseEntity.noContent().build(); // 204 No Content
     }
-}
+} 

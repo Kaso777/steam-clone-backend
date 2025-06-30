@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.time.LocalDate;
 
 @Service
 public class UserGameServiceImpl implements UserGameService {
@@ -35,15 +36,15 @@ public class UserGameServiceImpl implements UserGameService {
     @Transactional
     public UserGameResponseDTO addGameToUserLibrary(UserGameRequestDTO userGameRequestDTO) {
         // 1. Trova l'utente per UUID, altrimenti lancia eccezione
-        User user = userRepository.findByUuid(userGameRequestDTO.getUserUuid())
+        User user = userRepository.findById(userGameRequestDTO.getUserUuid())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with UUID: " + userGameRequestDTO.getUserUuid()));
 
         // 2. Trova il gioco per UUID, altrimenti lancia eccezione
-        Game game = gameRepository.findByUuid(userGameRequestDTO.getGameUuid())
+        Game game = gameRepository.findById(userGameRequestDTO.getGameUuid())
                 .orElseThrow(() -> new ResourceNotFoundException("Game not found with UUID: " + userGameRequestDTO.getGameUuid()));
 
         // 3. Controlla se l'utente possiede già il gioco per evitare duplicati
-        if (userGameRepository.existsByIdUserUuidAndIdGameUuid(user.getUuid(), game.getUuid())) {
+        if (userGameRepository.existsByIdUserUuidAndIdGameUuid(user.getId(), game.getId())) {
             throw new IllegalStateException("User already owns this game.");
         }
 

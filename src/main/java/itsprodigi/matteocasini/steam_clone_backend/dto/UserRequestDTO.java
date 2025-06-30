@@ -64,4 +64,4 @@ public class UserRequestDTO {
                ", password='" + password + '\'' + // Per il momento la password è visibile per debug, ma poi verrà gestita in modo sicuro
                '}';
     }
-}
+} 

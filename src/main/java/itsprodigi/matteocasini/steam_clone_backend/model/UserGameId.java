@@ -59,4 +59,4 @@ public class UserGameId implements Serializable {
     public int hashCode() {
         return Objects.hash(userUuid, gameUuid);
     }
-}
+} 

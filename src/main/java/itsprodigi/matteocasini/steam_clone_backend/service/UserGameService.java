@@ -41,4 +41,4 @@ public interface UserGameService {
      * @throws itsprodigi.matteocasini.steam_clone_backend.exception.ResourceNotFoundException se la relazione non viene trovata.
      */
     void removeGameFromUserLibrary(UUID userUuid, UUID gameUuid);
-}
+} 

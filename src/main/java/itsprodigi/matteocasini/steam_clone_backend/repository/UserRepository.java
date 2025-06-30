@@ -26,4 +26,4 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     che un indirizzo email non sia già stato utilizzato da un altro account.
     Questo è un controllo comune per garantire l'unicità dell'email per utente.
     */
-}
+} 

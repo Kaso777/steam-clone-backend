@@ -44,4 +44,9 @@ public interface GameService {
      * @throws itsprodigi.matteocasini.steam_clone_backend.exception.ResourceNotFoundException se il gioco non viene trovato.
      */
     void deleteGame(UUID uuid);
+
+    List<GameResponseDTO> findGamesByTitle(String title);
+    List<GameResponseDTO> findGamesByGenre(String genre);
+    List<GameResponseDTO> findGamesByDeveloper(String developer);
+    List<GameResponseDTO> findGamesByPublisher(String publisher);
 }

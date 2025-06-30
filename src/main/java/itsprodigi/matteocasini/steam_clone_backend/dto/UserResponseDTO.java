@@ -1,10 +1,10 @@
 package itsprodigi.matteocasini.steam_clone_backend.dto;
 
-import itsprodigi.matteocasini.steam_clone_backend.model.User; // Importa la tua entità User
+import itsprodigi.matteocasini.steam_clone_backend.model.User; // Importa entità User
 import java.util.UUID;
 
 public class UserResponseDTO {
-    private UUID uuid;
+    private UUID uuid; // Questo campo nel DTO manterrà il nome 'uuid' per coerenza API esterna
     private String username;
     private String email;
 
@@ -14,7 +14,7 @@ public class UserResponseDTO {
 
     // Costruttore: prende un'entità User e la mappa al DTO
     public UserResponseDTO(User user) {
-        this.uuid = user.getUuid();
+        this.uuid = user.getId(); // Mappa l'ID (UUID) dell'entità all'UUID del DTO
         this.username = user.getUsername();
         this.email = user.getEmail();
         // NOTA: NON includiamo la password nel ResponseDTO per sicurezza!

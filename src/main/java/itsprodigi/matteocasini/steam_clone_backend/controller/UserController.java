@@ -122,4 +122,4 @@ public class UserController {
         // Questo stato è appropriato per le eliminazioni che non restituiscono dati nel corpo.
         return ResponseEntity.noContent().build(); // ResponseEntity.noContent().build() crea una risposta 204
     }
-}
+} 
