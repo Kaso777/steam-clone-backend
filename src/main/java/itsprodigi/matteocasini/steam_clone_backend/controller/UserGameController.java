@@ -2,6 +2,8 @@ package itsprodigi.matteocasini.steam_clone_backend.controller;
 
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserGameRequestDTO;
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserGameResponseDTO;
+import itsprodigi.matteocasini.steam_clone_backend.dto.UserLibraryResponseDTO;
+import itsprodigi.matteocasini.steam_clone_backend.model.UserGame;
 import itsprodigi.matteocasini.steam_clone_backend.service.UserGameService;
 
 import jakarta.validation.Valid;
@@ -41,12 +43,15 @@ public class UserGameController {
      * Metodo HTTP: GET
      * URL: /api/library/user/{userUuid}
      * @param userUuid L'UUID dell'utente di cui recuperare la libreria.
-     * @return ResponseEntity<List<UserGameResponseDTO>> con la lista dei giochi e stato HTTP 200 OK.
+     * @return ResponseEntity<UserLibraryResponseDTO> con la libreria formattata e stato HTTP 200 OK.
      */
     @GetMapping("/user/{userUuid}")
-    public ResponseEntity<List<UserGameResponseDTO>> getUserLibrary(@PathVariable UUID userUuid) {
-        List<UserGameResponseDTO> userGames = userGameService.getUserLibrary(userUuid);
-        return ResponseEntity.ok(userGames);
+    public ResponseEntity<UserLibraryResponseDTO> getUserLibrary(@PathVariable UUID userUuid) {
+        // Il service ora restituisce una lista di entità UserGame
+        List<UserGame> userGames = userGameService.getUserLibrary(userUuid);
+        // Crea il nuovo DTO di risposta usando la lista di entità
+        UserLibraryResponseDTO response = new UserLibraryResponseDTO(userGames);
+        return ResponseEntity.ok(response);
     }
 
     /**

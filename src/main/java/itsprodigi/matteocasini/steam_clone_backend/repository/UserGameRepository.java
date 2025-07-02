@@ -30,6 +30,14 @@ public interface UserGameRepository extends JpaRepository<UserGame, UserGameId> 
     Optional<UserGame> findByIdUserUuidAndIdGameUuid(UUID userUuid, UUID gameUuid);
 
     /**
+     * Trova tutte le entry della libreria per un determinato utente, tramite il suo UUID.
+     * @param userId L'UUID dell'utente.
+     * @return Una lista di UserGame che rappresentano i giochi posseduti dall'utente.
+     */
+    List<UserGame> findByUserId(UUID userId);
+    // questo metodo è uguale al precedente, ma usa direttamente l'UUID dell'utente.
+
+    /**
      * Verifica se una specifica entry della libreria esiste, tramite l'UUID dell'utente e l'UUID del gioco.
      * Questo è utile per controllare se un utente possiede già un certo gioco.
      * @param userUuid L'UUID dell'utente.

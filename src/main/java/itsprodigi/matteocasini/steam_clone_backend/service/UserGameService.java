@@ -2,6 +2,7 @@ package itsprodigi.matteocasini.steam_clone_backend.service;
 
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserGameRequestDTO;
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserGameResponseDTO;
+import itsprodigi.matteocasini.steam_clone_backend.model.UserGame;
 
 import java.util.List;
 import java.util.UUID;
@@ -23,7 +24,7 @@ public interface UserGameService {
      * @return Una lista di DTO di UserGameResponseDTO che rappresentano i giochi posseduti dall'utente.
      * @throws itsprodigi.matteocasini.steam_clone_backend.exception.ResourceNotFoundException se l'utente non viene trovato.
      */
-    List<UserGameResponseDTO> getUserLibrary(UUID userUuid);
+    List<UserGame> getUserLibrary(UUID userUuid);
 
     /**
      * Recupera una specifica entry della libreria (un utente che possiede un gioco specifico).

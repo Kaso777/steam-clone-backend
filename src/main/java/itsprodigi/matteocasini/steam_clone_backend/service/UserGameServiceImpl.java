@@ -60,17 +60,11 @@ public class UserGameServiceImpl implements UserGameService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserGameResponseDTO> getUserLibrary(UUID userUuid) {
-        // Opzionale: puoi anche controllare se l'utente esiste prima di cercare la sua libreria
-        // userRepository.findByUuid(userUuid).orElseThrow(() -> new ResourceNotFoundException("User not found with UUID: " + userUuid));
-
-        // Trova tutte le entry UserGame per l'UUID dell'utente
-        List<UserGame> userGames = userGameRepository.findByIdUserUuid(userUuid);
-
-        // Mappa ogni entità UserGame a un UserGameResponseDTO
-        return userGames.stream()
-                .map(UserGameResponseDTO::new)
-                .collect(Collectors.toList());
+    public List<UserGame> getUserLibrary(UUID userUuid) {
+        User user = userRepository.findById(userUuid)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userUuid));
+        // Assicurati che il metodo findByUserId esista nel tuo UserGameRepository
+        return userGameRepository.findByUserId(user.getId()); // Usa user.getId() che è l'UUID
     }
 
     @Override
