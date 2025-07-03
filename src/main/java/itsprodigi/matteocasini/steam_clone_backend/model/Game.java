@@ -4,14 +4,17 @@ import jakarta.persistence.*;
 import java.math.BigDecimal; // Per prezzi precisi
 import java.time.LocalDate;   // Per la data di rilascio
 import java.util.UUID;        // Per l'identificatore pubblico
+import org.hibernate.annotations.UuidGenerator;
 
 @Entity // Indica che questa classe è un'entità JPA e sarà mappata a una tabella di database
 @Table(name = "games") // Specifica il nome della tabella nel database
 public class Game {
 
     @Id // Indica che questo campo è la chiave primaria
-    // `columnDefinition = "UUID"` è importante per H2 e PostgreSQL
-    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "UUID")
+    @GeneratedValue // Permette a Hibernate di generare il valore
+    @UuidGenerator // Questa annotazione specifica il generatore UUID
+
+    @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
     @Column(name = "title", nullable = false, length = 100)
@@ -42,13 +45,6 @@ public class Game {
         this.releaseDate = releaseDate;
         this.developer = developer;
         this.publisher = publisher;
-    }
-
-    @PrePersist // Questo metodo viene eseguito automaticamente prima di salvare una nuova entità nel DB
-    public void generateId() {
-        if (this.id == null) {
-            this.id = UUID.randomUUID(); // Genera un UUID per l'ID primario
-        }
     }
 
     // Getter e Setter
@@ -120,4 +116,4 @@ public class Game {
                ", publisher='" + publisher + '\'' +
                '}';
     }
-} 
+}
