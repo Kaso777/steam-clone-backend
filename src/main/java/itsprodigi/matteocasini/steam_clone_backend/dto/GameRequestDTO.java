@@ -14,10 +14,6 @@ public class GameRequestDTO {
     @Size(max = 100, message = "Il titolo non può superare i 100 caratteri")
     private String title;
 
-    @NotBlank(message = "Il genere non può essere vuoto")
-    @Size(max = 50, message = "Il genere non può superare i 50 caratteri")
-    private String genre;
-
     @NotNull(message = "Il prezzo non può essere nullo")
     @DecimalMin(value = "0.00", inclusive = true, message = "Il prezzo non può essere negativo")
     private BigDecimal price;
@@ -41,7 +37,6 @@ public class GameRequestDTO {
     // Costruttore con argomenti
     public GameRequestDTO(String title, String genre, BigDecimal price, LocalDate releaseDate, String developer, String publisher) {
         this.title = title;
-        this.genre = genre;
         this.price = price;
         this.releaseDate = releaseDate;
         this.developer = developer;
@@ -55,14 +50,6 @@ public class GameRequestDTO {
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public String getGenre() {
-        return genre;
-    }
-
-    public void setGenre(String genre) {
-        this.genre = genre;
     }
 
     public BigDecimal getPrice() {
@@ -101,7 +88,6 @@ public class GameRequestDTO {
     public String toString() {
         return "GameRequestDTO{" +
                "title='" + title + '\'' +
-               ", genre='" + genre + '\'' +
                ", price=" + price +
                ", releaseDate=" + releaseDate +
                ", developer='" + developer + '\'' +

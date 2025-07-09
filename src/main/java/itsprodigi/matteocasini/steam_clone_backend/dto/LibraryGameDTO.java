@@ -3,7 +3,7 @@ package itsprodigi.matteocasini.steam_clone_backend.dto;
 import itsprodigi.matteocasini.steam_clone_backend.model.UserGame;
 import java.time.LocalDate;
 import java.util.Objects;
-import java.util.UUID; // Aggiungi questo import se non c'è
+import java.util.UUID;
 
 public class LibraryGameDTO {
     private GameResponseDTO game;
@@ -15,9 +15,8 @@ public class LibraryGameDTO {
         this.purchaseDate = userGame.getPurchaseDate();
     }
 
-    // Costruttore vuoto (necessario per la deserializzazione JSON se usi Jackson)
-    public LibraryGameDTO() {
-    }
+    // Costruttore vuoto necessario perché alcune librerie (come Jackson per la serializzazione JSON) richiedono un costruttore senza argomenti
+    public LibraryGameDTO() {}
 
     // --- Getters ---
     public GameResponseDTO getGame() {

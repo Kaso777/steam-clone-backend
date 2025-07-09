@@ -24,6 +24,12 @@ public class User {
     @Column(name = "password", nullable = false, length = 255)
     private String password;
 
+    // Relazione OneToOne con UserProfile
+    // Questo lato è il non proprietario della relazione (non contiene la FK)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private UserProfile userProfile;
+
+    // Costruttori
     public User() {
     }
 
@@ -33,7 +39,7 @@ public class User {
         this.password = password;
     }
 
-    // Getter e Setter per il nuovo ID (UUID)
+    // Getter e Setter
     public UUID getId() {
         return id;
     }
@@ -41,10 +47,6 @@ public class User {
     public void setId(UUID id) {
         this.id = id;
     }
-
-    // Se avevi i getter/setter per il vecchio campo `uuid`, rimuovili:
-    // public UUID getUuid() { return uuid; }
-    // public void setUuid(UUID uuid) { this.uuid = uuid; }
 
     public String getUsername() {
         return username;
@@ -69,6 +71,20 @@ public class User {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    public UserProfile getUserProfile() {
+        return userProfile;
+    }
+
+    public void setUserProfile(UserProfile userProfile) {
+        this.userProfile = userProfile;
+        if (userProfile != null) {
+            userProfile.setUser(this);
+        }
+    }
+// L'if sopra serve a garantire che quando si imposta un UserProfile, il campo user di UserProfile venga aggiornato correttamente per
+// avere una relazione bidirezionale corretta degli oggetti Java utilizzati in memoria.
+
 
     @Override
     public String toString() {

@@ -32,7 +32,6 @@ public class GameServiceImpl implements GameService {
     public GameResponseDTO createGame(GameRequestDTO gameRequestDTO) {
         Game game = new Game(); // Crea una nuova istanza dell'entità Game
         game.setTitle(gameRequestDTO.getTitle());
-        game.setGenre(gameRequestDTO.getGenre());
         game.setPrice(gameRequestDTO.getPrice());
         game.setReleaseDate(gameRequestDTO.getReleaseDate());
         game.setDeveloper(gameRequestDTO.getDeveloper());
@@ -93,7 +92,6 @@ public class GameServiceImpl implements GameService {
 
         // Aggiorna i campi del gioco esistente con i nuovi dati dal DTO
         existingGame.setTitle(gameRequestDTO.getTitle());
-        existingGame.setGenre(gameRequestDTO.getGenre());
         existingGame.setPrice(gameRequestDTO.getPrice());
         existingGame.setReleaseDate(gameRequestDTO.getReleaseDate());
         existingGame.setDeveloper(gameRequestDTO.getDeveloper());
