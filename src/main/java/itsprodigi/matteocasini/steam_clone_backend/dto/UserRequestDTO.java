@@ -19,15 +19,21 @@ public class UserRequestDTO {
     @Size(min = 6, message = "La password deve avere almeno 6 caratteri")
     private String password;
 
+    // È marcato come @NotBlank perché ogni utente dovrebbe avere un ruolo.
+    // Potresti voler definire dei valori specifici (es. "USER", "ADMIN") e validare su quelli.
+    @NotBlank(message = "Il ruolo non può essere vuoto o composto solo da spazi.")
+    private String role;
+
     // Costruttore senza argomenti (necessario per la deserializzazione JSON)
     public UserRequestDTO() {
     }
 
     // Costruttore con argomenti
-    public UserRequestDTO(String username, String email, String password) {
+    public UserRequestDTO(String username, String email, String password, String role) {
         this.username = username;
         this.email = email;
         this.password = password;
+        this.role = role;
     }
 
     // Getter
@@ -43,6 +49,10 @@ public class UserRequestDTO {
         return password;
     }
 
+    public String getRole() {
+        return role;
+    }
+
     // Setter (anche se per un DTO di richiesta i setter sono meno usati)
     public void setUsername(String username) {
         this.username = username;
@@ -56,6 +66,10 @@ public class UserRequestDTO {
         this.password = password;
     }
 
+    public void setRole(String role) {
+        this.role = role;
+    }
+
     @Override
     public String toString() {
         return "UserRequestDTO{" +
@@ -64,4 +78,4 @@ public class UserRequestDTO {
                ", password='" + password + '\'' + // Per il momento la password è visibile per debug, ma poi verrà gestita in modo sicuro
                '}';
     }
-} 
+}

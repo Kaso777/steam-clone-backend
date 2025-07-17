@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+// Questa classe rappresenta la risposta per la libreria di un utente.
+// Contiene informazioni sull'utente e i giochi nella sua libreria.
+
 public class UserLibraryResponseDTO {
     private UserResponseDTO user;
     private List<LibraryGameDTO> gamesInLibrary;

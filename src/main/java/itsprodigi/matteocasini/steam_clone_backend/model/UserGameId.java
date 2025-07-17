@@ -1,3 +1,7 @@
+//Questa classe rappresenta una chiave primaria composta per l'entità UserGame.
+// È utilizzata per identificare univocamente una relazione tra un utente e un gioco.
+// Per semplificare è una tabella di join tra User e Game.
+
 package itsprodigi.matteocasini.steam_clone_backend.model;
 
 import jakarta.persistence.Column;

@@ -5,6 +5,9 @@ import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
 
+
+// Questa classe rappresenta un gioco nella libreria di un utente.
+// Contiene informazioni sul gioco e la data di acquisto.
 public class LibraryGameDTO {
     private GameResponseDTO game;
     private LocalDate purchaseDate;

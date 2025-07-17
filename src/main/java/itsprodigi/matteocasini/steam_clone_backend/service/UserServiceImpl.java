@@ -1,143 +1,211 @@
 package itsprodigi.matteocasini.steam_clone_backend.service;
 
-// Importa le classi necessarie dai pacchetti del tuo progetto
-import itsprodigi.matteocasini.steam_clone_backend.model.User; // L'entità User per interagire con il DB
-import itsprodigi.matteocasini.steam_clone_backend.repository.UserRepository; // L'interfaccia per le operazioni DB su User
-import itsprodigi.matteocasini.steam_clone_backend.dto.UserRequestDTO; // DTO per i dati in ingresso
-import itsprodigi.matteocasini.steam_clone_backend.dto.UserResponseDTO; // DTO per i dati in uscita
-import itsprodigi.matteocasini.steam_clone_backend.exception.ResourceNotFoundException; // La tua eccezione personalizzata per risorse non trovate
+import itsprodigi.matteocasini.steam_clone_backend.model.User; // Importa l'entità User
+import itsprodigi.matteocasini.steam_clone_backend.repository.UserRepository; // Importa il Repository per User
+import itsprodigi.matteocasini.steam_clone_backend.dto.UserRequestDTO; // Importa il DTO di richiesta per User
+import itsprodigi.matteocasini.steam_clone_backend.dto.UserResponseDTO; // Importa il DTO di risposta per User
 
-// Importa le annotazioni e classi di Spring Framework
-import org.springframework.stereotype.Service; // Indica a Spring che questa è una classe di servizio (componente gestito)
-import org.springframework.transaction.annotation.Transactional; // Gestione delle transazioni di database
+import org.springframework.beans.factory.annotation.Autowired; // Per l'iniezione delle dipendenze
+import org.springframework.security.crypto.password.PasswordEncoder; // Per hashare le password in modo sicuro
+import org.springframework.stereotype.Service; // Indica che questa è una classe di servizio Spring
+import org.springframework.transaction.annotation.Transactional; // Per la gestione delle transazioni di database
 
-// Importa classi standard di Java
-import java.util.List; // Per lavorare con liste di oggetti
-import java.util.UUID; // Per lavorare con gli UUID
-import java.util.stream.Collectors; // Per facilitare la trasformazione di stream in liste
+import java.util.List; // Per liste di oggetti
+import java.util.Optional; // Per gestire la possibile assenza di un valore
+import java.util.UUID; // Per gli ID univoci degli utenti
+import java.util.stream.Collectors; // Per collezionare elementi da uno stream
 
-@Service // Marca la classe come un Service di Spring, gestito dal contenitore IoC
-public class UserServiceImpl implements UserService {
+/**
+ * Implementazione concreta dell'interfaccia UserService.
+ * Questa classe contiene la logica di business effettiva per la gestione degli Utenti.
+ * È responsabile di interagire con il UserRepository per accedere ai dati nel database
+ * e di mappare le entità del database (User) ai Data Transfer Objects (DTO)
+ * di richiesta (UserRequestDTO) e risposta (UserResponseDTO) per l'interazione con il livello Controller.
+ */
+@Service // Indica a Spring che questa classe è un componente di servizio e deve essere gestita dal suo IoC container.
+public class UserServiceImpl implements UserService { // Implementa l'interfaccia UserService, rispettando il contratto definito.
 
-    private final UserRepository userRepository; // Iniezione della dipendenza del UserRepository
+    private final UserRepository userRepository; // Iniezione del Repository per le operazioni sul database relative agli utenti.
+    private final PasswordEncoder passwordEncoder; // Iniezione del PasswordEncoder per hashare le password in modo sicuro.
 
-    // Costruttore per l'iniezione delle dipendenze (Spring inietta UserRepository qui)
-    public UserServiceImpl(UserRepository userRepository) {
+    /**
+     * Costruttore per l'iniezione delle dipendenze.
+     * Spring inietta automaticamente le istanze di UserRepository e PasswordEncoder.
+     * @param userRepository Il Repository per l'entità User.
+     * @param passwordEncoder L'encoder per le password.
+     */
+    @Autowired
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     /**
-     * Crea un nuovo utente nel sistema.
-     * Applica controlli di unicità per username ed email prima di salvare.
-     * @param userRequestDTO DTO contenente i dati del nuovo utente.
-     * @return UserResponseDTO con i dati dell'utente creato e il suo UUID.
-     * @throws IllegalStateException Se username o email sono già in uso.
+     * Implementazione del metodo per registrare un nuovo utente nel sistema.
+     * Questo metodo riceve un DTO di richiesta, converte i suoi dati in un'entità User,
+     * hasha la password per sicurezza e salva la nuova entità nel database.
+     * @param userRequestDTO Il Data Transfer Object contenente i dati di registrazione dell'utente
+     * (username, email, password, role).
+     * @return Il UserResponseDTO dell'utente appena registrato, contenente i dati esposti all'API.
+     * @throws RuntimeException se lo username o l'email forniti sono già in uso da un altro utente.
      */
-    @Override // Indica che questo metodo implementa un metodo dall'interfaccia UserService
-    @Transactional // Ogni operazione all'interno di questo metodo è gestita come una singola transazione database
-    public UserResponseDTO createUser(UserRequestDTO userRequestDTO) {
-        // Controllo per evitare username duplicati
+    @Override // Indica che questo metodo implementa un metodo definito nell'interfaccia UserService.
+    @Transactional // Assicura che l'intera operazione (lettura e scrittura nel DB) sia atomica.
+                   // Se un'eccezione viene lanciata, tutte le modifiche al database vengono annullate (rollback).
+    public UserResponseDTO registerUser(UserRequestDTO userRequestDTO) {
+        // 1. Verifica l'unicità dello username e dell'email prima di procedere con la registrazione.
+        //    Utilizziamo i metodi 'existsByUsername' e 'existsByEmail' del UserRepository.
+        //    Questi metodi sono più efficienti di 'findBy...().isPresent()' quando si vuole solo
+        //    verificare l'esistenza di un record, poiché il database può ottimizzare la query.
         if (userRepository.existsByUsername(userRequestDTO.getUsername())) {
-            throw new IllegalStateException("Username is already taken.");
+            throw new RuntimeException("Nome utente '" + userRequestDTO.getUsername() + "' già in uso.");
         }
-        // Controllo per evitare email duplicate
         if (userRepository.existsByEmail(userRequestDTO.getEmail())) {
-            throw new IllegalStateException("Email is already registered.");
+            throw new RuntimeException("Email '" + userRequestDTO.getEmail() + "' già in uso.");
         }
 
-        User user = new User(); // Crea una nuova istanza dell'entità User
+        // 2. Crea una nuova entità User e popola i suoi campi con i dati dal DTO di richiesta.
+        User user = new User();
         user.setUsername(userRequestDTO.getUsername());
         user.setEmail(userRequestDTO.getEmail());
-        user.setPassword(userRequestDTO.getPassword()); // NOTA: In un'applicazione reale, qui andrebbe l'hashing della password!
+        // 3. Hashes la password fornita nel DTO prima di impostarla nell'entità User.
+        //    È una best practice di sicurezza fondamentale: MAI salvare password in chiaro nel database.
+        user.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
+        // 4. Imposta il ruolo dell'utente, come specificato nel DTO di richiesta.
+        user.setRole(userRequestDTO.getRole());
 
-        // Salva l'utente nel database. Il metodo @PrePersist in User.java genererà l'UUID per 'id'.
+        // 5. Salva la nuova entità User nel database tramite il UserRepository.
         User savedUser = userRepository.save(user);
-        // Converte l'entità salvata in un DTO di risposta e lo restituisce.
-        // Il DTO prenderà l'UUID dal campo 'id' dell'utente, che ora è il suo identificatore pubblico.
-        return new UserResponseDTO(savedUser);
+
+        // 6. Converte l'entità User appena salvata in un UserResponseDTO.
+        //    Questo DTO sarà la risposta inviata al client, contenente solo i dati esposti.
+        return convertToResponseDto(savedUser);
     }
 
     /**
-     * Recupera un utente tramite il suo UUID.
-     * @param uuid L'UUID dell'utente da recuperare.
-     * @return UserResponseDTO con i dati dell'utente.
-     * @throws ResourceNotFoundException Se l'utente con l'UUID specificato non viene trovato.
+     * Implementazione del metodo per recuperare un utente tramite il suo ID univoco.
+     * Il metodo cerca l'entità User nel database e, se trovata, la converte in un DTO di risposta.
+     * @param id L'ID univoco (UUID) dell'utente da recuperare.
+     * @return Un Optional contenente il UserResponseDTO se l'utente esiste, altrimenti un Optional vuoto.
      */
-    @Override
-    @Transactional(readOnly = true) // La transazione è in sola lettura, ottimizzata per le query
-    public UserResponseDTO getUserByUuid(UUID uuid) {
-        // CAMBIAMENTO CHIAVE: Utilizza findById del UserRepository.
-        // Poiché ora UUID è l'ID primario dell'entità User, findById funziona direttamente.
-        User user = userRepository.findById(uuid)
-                // Se l'utente non viene trovato, lancia un'eccezione ResourceNotFoundException.
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with UUID: " + uuid));
-        // Converte l'entità trovata in un DTO di risposta.
-        return new UserResponseDTO(user);
+    @Override // Indica che questo metodo implementa un metodo definito nell'interfaccia UserService.
+    public Optional<UserResponseDTO> getUserById(UUID id) {
+        // Cerca l'entità User nel database tramite il suo ID.
+        return userRepository.findById(id)
+                // Se l'Optional contiene un'entità User (cioè l'utente è stato trovato),
+                // applica il metodo 'convertToResponseDto' per trasformarla in un DTO.
+                .map(this::convertToResponseDto);
     }
 
     /**
-     * Recupera tutti gli utenti presenti nel sistema.
-     * @return Lista di UserResponseDTO di tutti gli utenti.
+     * Implementazione del metodo per recuperare tutti gli utenti registrati nel sistema.
+     * Recupera tutte le entità User dal database e le converte in una lista di DTO di risposta.
+     * @return Una lista di UserResponseDTO, rappresentante tutti gli utenti.
      */
-    @Override
-    @Transactional(readOnly = true)
+    @Override // Indica che questo metodo implementa un metodo definito nell'interfaccia UserService.
     public List<UserResponseDTO> getAllUsers() {
-        // Recupera tutti gli utenti dal database
+        // Recupera tutte le entità User dal database.
         return userRepository.findAll().stream()
-                // Mappa ogni entità User in un UserResponseDTO
-                .map(UserResponseDTO::new)
-                // Raccoglie i DTO in una lista
+                // Per ogni entità User nello stream, la mappa a un UserResponseDTO.
+                .map(this::convertToResponseDto)
+                // Colleziona tutti i DTO mappati in una nuova lista.
                 .collect(Collectors.toList());
     }
 
     /**
-     * Aggiorna i dati di un utente esistente.
-     * Applica controlli di unicità per username ed email, escludendo l'utente corrente.
-     * @param uuid L'UUID dell'utente da aggiornare.
-     * @param userRequestDTO DTO contenente i nuovi dati dell'utente.
-     * @return UserResponseDTO con i dati dell'utente aggiornato.
-     * @throws ResourceNotFoundException Se l'utente con l'UUID specificato non viene trovato.
-     * @throws IllegalStateException Se il nuovo username o email sono già in uso da un altro utente.
+     * Implementazione del metodo per aggiornare i dati di un utente esistente.
+     * Il metodo cerca l'utente per ID, verifica l'unicità dello username e dell'email (escludendo l'utente stesso),
+     * aggiorna i campi dell'entità con i nuovi dati dal DTO di richiesta e salva le modifiche.
+     * @param id L'ID dell'utente da aggiornare.
+     * @param userRequestDTO Il DTO contenente i nuovi dati dell'utente (username, email, password, role).
+     * @return Il UserResponseDTO dell'utente aggiornato.
+     * @throws RuntimeException se l'utente non viene trovato o se username/email sono già in uso da altri utenti.
      */
-    @Override
-    @Transactional
-    public UserResponseDTO updateUser(UUID uuid, UserRequestDTO userRequestDTO) {
-        // CAMBIAMENTO CHIAVE: Recupera l'utente esistente tramite findById
-        User existingUser = userRepository.findById(uuid)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with UUID: " + uuid));
+    @Override // Indica che questo metodo implementa un metodo definito nell'interfaccia UserService.
+    @Transactional // Assicura che l'operazione di aggiornamento sia atomica.
+    public UserResponseDTO updateUser(UUID id, UserRequestDTO userRequestDTO) {
+        // 1. Trova l'utente da aggiornare per ID. Se l'utente non esiste, lancia un'eccezione.
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Utente non trovato con ID: " + id));
 
-        // Controlla se il nuovo username è già preso da un *altro* utente.
-        // Se il username è lo stesso dell'utente corrente, non c'è bisogno di controllare.
-        if (!existingUser.getUsername().equals(userRequestDTO.getUsername()) && userRepository.existsByUsername(userRequestDTO.getUsername())) {
-            throw new IllegalStateException("Username is already taken.");
+        // 2. Verifica l'unicità dello username:
+        //    Cerca un utente con lo username fornito. Se esiste, controlla che non sia l'utente che stiamo aggiornando.
+        //    Questo impedisce a un utente di cambiare il suo username con uno già preso da un altro utente.
+        userRepository.findByUsername(userRequestDTO.getUsername())
+                .ifPresent(existingUser -> {
+                    if (!existingUser.getId().equals(id)) { // Se l'ID dell'utente esistente NON è l'ID dell'utente che stiamo aggiornando
+                        throw new RuntimeException("Nome utente '" + userRequestDTO.getUsername() + "' già in uso da un altro utente.");
+                    }
+                });
+        // 3. Verifica l'unicità dell'email:
+        //    Stesso principio dello username, ma per l'email.
+        userRepository.findByEmail(userRequestDTO.getEmail())
+                .ifPresent(existingUser -> {
+                    if (!existingUser.getId().equals(id)) {
+                        throw new RuntimeException("Email '" + userRequestDTO.getEmail() + "' già in uso da un altro utente.");
+                    }
+                });
+
+        // 4. Aggiorna i campi dell'entità User con i dati provenienti dal DTO di richiesta.
+        user.setUsername(userRequestDTO.getUsername());
+        user.setEmail(userRequestDTO.getEmail());
+        // 5. Aggiorna la password solo se una nuova password è stata fornita nel DTO e non è vuota.
+        //    Questo permette agli utenti di aggiornare altri dati senza dover reinserire la password.
+        if (userRequestDTO.getPassword() != null && !userRequestDTO.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
         }
-        // Controlla se la nuova email è già registrata da un *altro* utente.
-        if (!existingUser.getEmail().equals(userRequestDTO.getEmail()) && userRepository.existsByEmail(userRequestDTO.getEmail())) {
-            throw new IllegalStateException("Email is already registered.");
-        }
+        // 6. Aggiorna il ruolo dell'utente.
+        user.setRole(userRequestDTO.getRole());
 
-        // Aggiorna i campi dell'utente esistente con i nuovi dati dal DTO
-        existingUser.setUsername(userRequestDTO.getUsername());
-        existingUser.setEmail(userRequestDTO.getEmail());
-        existingUser.setPassword(userRequestDTO.getPassword()); // NOTA: Qui andrebbe gestito l'aggiornamento sicuro della password
-
-        User updatedUser = userRepository.save(existingUser); // Salva le modifiche nel database
-        return new UserResponseDTO(updatedUser); // Restituisce l'utente aggiornato come DTO
+        // 7. Salva l'entità User aggiornata nel database.
+        User updatedUser = userRepository.save(user);
+        // 8. Converte l'entità aggiornata in un UserResponseDTO e lo restituisce.
+        return convertToResponseDto(updatedUser);
     }
 
     /**
-     * Elimina un utente tramite il suo UUID.
-     * @param uuid L'UUID dell'utente da eliminare.
-     * @throws ResourceNotFoundException Se l'utente con l'UUID specificato non viene trovato.
+     * Implementazione del metodo per eliminare un utente tramite il suo ID.
+     * Il metodo verifica prima se l'utente esiste e poi procede con l'eliminazione.
+     * @param id L'ID dell'utente da eliminare.
+     * @throws RuntimeException se l'utente con l'ID specificato non viene trovato.
      */
-    @Override
-    @Transactional
-    public void deleteUser(UUID uuid) {
-        // CAMBIAMENTO CHIAVE: Prima di eliminare, controlla se l'utente esiste con existsById.
-        if (!userRepository.existsById(uuid)) {
-            throw new ResourceNotFoundException("User not found with UUID: " + uuid);
+    @Override // Indica che questo metodo implementa un metodo definito nell'interfaccia UserService.
+    @Transactional // Assicura che l'operazione di eliminazione sia atomica.
+    public void deleteUser(UUID id) {
+        // 1. Verifica se l'utente esiste prima di tentare l'eliminazione.
+        //    Questo previene un'eccezione se si tenta di eliminare un utente inesistente.
+        if (!userRepository.existsById(id)) {
+            throw new RuntimeException("Utente non trovato con ID: " + id);
         }
-        // Elimina l'utente dal database tramite il suo UUID.
-        userRepository.deleteById(uuid);
+        // 2. Elimina l'utente dal database tramite il suo ID.
+        //    NOTA: Grazie alle configurazioni di cascata nelle relazioni di User (es. con UserProfile e UserGame),
+        //    le entità correlate potrebbero essere eliminate automaticamente (se configurato con CascadeType.ALL e orphanRemoval).
+        //    Assicurati che il comportamento di cascata sia quello desiderato.
+        userRepository.deleteById(id);
+    }
+
+    // --- Metodi di Mappatura (Conversione tra Entità e DTO) ---
+
+    /**
+     * Metodo privato helper per convertire un'entità User (dal database)
+     * in un UserResponseDTO (per l'invio al client).
+     * Questo metodo è utilizzato internamente dal servizio per preparare le risposte API.
+     * @param user L'entità User da convertire.
+     * @return Il UserResponseDTO corrispondente, contenente i dati esposti all'API.
+     */
+    private UserResponseDTO convertToResponseDto(User user) {
+        // Crea una nuova istanza di UserResponseDTO.
+        UserResponseDTO dto = new UserResponseDTO();
+        // Popola i campi del DTO utilizzando i getter dell'entità User.
+        dto.setId(user.getId());
+        dto.setUsername(user.getUsername());
+        dto.setEmail(user.getEmail());
+        dto.setRole(user.getRole()); // Popola il campo 'role' nel DTO di risposta.
+
+        // NOTA: Come concordato, non includiamo qui UserProfileResponseDTO nidificato
+        // per mantenere UserResponseDTO più semplice e focalizzato sui dati base dell'utente.
+        // Se in futuro si volesse includere il profilo, questa è la posizione dove gestirlo.
+
+        return dto;
     }
 }

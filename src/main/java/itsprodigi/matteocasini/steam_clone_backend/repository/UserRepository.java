@@ -26,4 +26,14 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     che un indirizzo email non sia già stato utilizzato da un altro account.
     Questo è un controllo comune per garantire l'unicità dell'email per utente.
     */
+
+
+    /**
+     * Trova un utente tramite la sua email.
+     * Spring Data JPA genererà automaticamente la query SQL basandosi sul nome del metodo.
+     * @param email L'email dell'utente da cercare.
+     * @return Un Optional contenente l'entità User se trovata, altrimenti Optional.empty().
+     */
+    Optional<User> findByEmail(String email);
+
 } 
