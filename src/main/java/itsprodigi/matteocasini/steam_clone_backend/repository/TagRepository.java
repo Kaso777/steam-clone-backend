@@ -12,4 +12,12 @@ public interface TagRepository extends JpaRepository<Tag, Long> {
 
     // Puoi aggiungere metodi personalizzati se necessario, ad esempio:
     Optional<Tag> findByName(String name); // Per trovare un Tag per nome
+
+    /**
+     * Trova un tag tramite il suo nome, ignorando la distinzione tra maiuscole e minuscole.
+     * Utile per verificare l'esistenza di un tag prima di crearne uno nuovo.
+     * @param name Il nome del tag da cercare.
+     * @return Un Optional contenente il Tag se trovato, altrimenti Optional.empty().
+     */
+    Optional<Tag> findByNameIgnoreCase(String name);
 }
