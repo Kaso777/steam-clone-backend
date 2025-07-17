@@ -1,24 +1,22 @@
 package itsprodigi.matteocasini.steam_clone_backend.dto;
 
-import itsprodigi.matteocasini.steam_clone_backend.model.UserGame; // Importa l'entità UserGame
+// Rappresenta ogni singolo gioco ma esportando solo i dati giusti a far parte di una libreria. È simile a UserGameResponseDTO,
+// ma non include i dettagli dell'utente, poiché questi sono già forniti in UserLibraryResponseDTO.
+// Questo DTO è progettato per essere utilizzato come elemento di una lista senza la ridondanza dei dettagli dell'utente.
+
+import itsprodigi.matteocasini.steam_clone_backend.model.UserGame; // Importa l'entità UserGame per la mappatura
 import java.time.LocalDate; // Per la data di acquisto
 
 /**
- * Data Transfer Object (DTO) per le risposte in uscita (output) relative a una singola voce UserGame.
- * Questo DTO rappresenta una specifica associazione tra un utente e un gioco nella sua libreria.
- * Include i dettagli completi dell'utente, i dettagli del gioco, la data di acquisto e le ore giocate.
- *
- * Questo DTO è pensato per essere utilizzato quando si vuole visualizzare o restituire
- * una singola voce della libreria, dove sia l'utente che il gioco sono rilevanti.
+ * Data Transfer Object (DTO) che rappresenta un singolo gioco all'interno della libreria di un utente.
+ * Questo DTO è progettato per essere utilizzato come elemento di una lista (es. in UserLibraryResponseDTO)
+ * e include i dettagli del gioco, la data di acquisto e le ore giocate, ma SENZA i dettagli dell'utente.
+ * L'esclusione dei dettagli dell'utente evita la ridondanza quando si visualizza l'intera libreria di un utente,
+ * dove i dettagli dell'utente sono già forniti a un livello superiore.
  */
-public class UserGameResponseDTO {
+public class LibraryGameItemDTO {
 
-    // Dettagli dell'utente associato a questa voce della libreria.
-    // Nidifica UserResponseDTO per fornire informazioni sull'utente.
-    private UserResponseDTO user;
-    
-    // Dettagli del gioco associato a questa voce della libreria.
-    // Nidifica GameResponseDTO per fornire informazioni sul gioco.
+    // Dettagli del gioco. Nidifica GameResponseDTO per fornire informazioni complete sul gioco.
     private GameResponseDTO game;
     
     // La data in cui il gioco è stato acquistato o aggiunto alla libreria dell'utente.
@@ -28,24 +26,21 @@ public class UserGameResponseDTO {
     private int playtimeHours;
 
     // Costruttore senza argomenti (necessario per la deserializzazione JSON/Spring)
-    public UserGameResponseDTO() {
+    public LibraryGameItemDTO() {
     }
 
     /**
      * Costruttore che mappa i dati da un'entità UserGame a questo DTO.
      * Questo costruttore è utile nel livello di servizio per convertire le entità
-     * recuperate dal database in un formato adatto alla risposta API.
-     * NOTA: Assicurati che le entità User e Game all'interno di UserGame siano caricate
+     * recuperate dal database in un formato adatto alla risposta API, quando
+     * si vuole rappresentare solo il gioco e i suoi attributi nella libreria, senza l'utente.
+     * NOTA: Assicurati che l'entità Game all'interno di UserGame sia caricata
      * (non lazy-loaded) quando questo costruttore viene chiamato, altrimenti potresti
      * incorrere in LazyInitializationException.
      *
      * @param userGame L'entità UserGame da cui mappare i dati.
      */
-    public UserGameResponseDTO(UserGame userGame) {
-        // Mappa l'entità User nidificata in un UserResponseDTO.
-        // Si assume che l'entità User sia già caricata.
-        this.user = new UserResponseDTO(userGame.getUser());
-        
+    public LibraryGameItemDTO(UserGame userGame) {
         // Mappa l'entità Game nidificata in un GameResponseDTO.
         // Si assume che l'entità Game sia già caricata.
         this.game = new GameResponseDTO(userGame.getGame());
@@ -58,23 +53,17 @@ public class UserGameResponseDTO {
      * Costruttore con tutti i campi del DTO.
      * Utile per creare istanze del DTO direttamente nel codice, ad esempio nei test.
      *
-     * @param user I dettagli dell'utente come UserResponseDTO.
      * @param game I dettagli del gioco come GameResponseDTO.
      * @param purchaseDate La data di acquisto.
      * @param playtimeHours Le ore giocate.
      */
-    public UserGameResponseDTO(UserResponseDTO user, GameResponseDTO game, LocalDate purchaseDate, int playtimeHours) {
-        this.user = user;
+    public LibraryGameItemDTO(GameResponseDTO game, LocalDate purchaseDate, int playtimeHours) {
         this.game = game;
         this.purchaseDate = purchaseDate;
         this.playtimeHours = playtimeHours;
     }
 
     // --- Getter ---
-    public UserResponseDTO getUser() {
-        return user;
-    }
-
     public GameResponseDTO getGame() {
         return game;
     }
@@ -88,10 +77,6 @@ public class UserGameResponseDTO {
     }
 
     // --- Setter ---
-    public void setUser(UserResponseDTO user) {
-        this.user = user;
-    }
-
     public void setGame(GameResponseDTO game) {
         this.game = game;
     }
@@ -106,9 +91,8 @@ public class UserGameResponseDTO {
 
     @Override
     public String toString() {
-        return "UserGameResponseDTO{" +
-               "user=" + user +
-               ", game=" + game +
+        return "LibraryGameItemDTO{" +
+               "game=" + game +
                ", purchaseDate=" + purchaseDate +
                ", playtimeHours=" + playtimeHours +
                '}';
