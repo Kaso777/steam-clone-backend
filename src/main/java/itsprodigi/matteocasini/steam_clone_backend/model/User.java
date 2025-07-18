@@ -4,9 +4,16 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.UuidGenerator;
 import java.util.*;
 
+// Import di Spring Security
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+
 @Entity
 @Table(name = "users")
-public class User {
+// Implementiamo l'interfaccia UserDetails
+public class User implements UserDetails { // <-- AGGIUNTO 'implements UserDetails'
 
     @Id // Indica che questo campo è la chiave primaria
     @GeneratedValue // Permette a Hibernate di generare il valore
@@ -24,14 +31,14 @@ public class User {
     private String password;
 
     @Column(name = "role", nullable = false, length = 20) // "USER" o "ADMIN"
-    private String role;
+    private String role; // Questo campo verrà utilizzato per i ruoli/autorizzazioni
 
     // Relazione OneToOne con UserProfile
     // Questo lato è il non proprietario della relazione (non contiene la FK)
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private UserProfile userProfile;
 
-     // Relazione OneToMany con UserGame (per la libreria, lato non proprietario)
+    // Relazione OneToMany con UserGame (per la libreria, lato non proprietario)
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserGame> userGames = new HashSet<>();
 
@@ -46,11 +53,12 @@ public class User {
         this.role = role;
     }
 
-    // Getter
+    // Getter (esistenti)
     public UUID getId() {
         return id;
     }
 
+    // Nota: getUsername() e getPassword() esistono già e sono richiesti da UserDetails
     public String getUsername() {
         return username;
     }
@@ -102,10 +110,10 @@ public class User {
             userProfile.setUser(this); // Mantiene la bidirezionalità
         }
     }
-// L'if sopra serve a garantire che quando si imposta un UserProfile, il campo user di UserProfile venga aggiornato correttamente per
-// avere una relazione bidirezionale corretta degli oggetti Java utilizzati in memoria.
+    // L'if sopra serve a garantire che quando si imposta un UserProfile, il campo user di UserProfile venga aggiornato correttamente per
+    // avere una relazione bidirezionale corretta degli oggetti Java utilizzati in memoria. 
 
-// Helper method to add a UserGame
+    // Helper method to add a UserGame
     public void addUserGame(UserGame userGame) {
         userGames.add(userGame);
         userGame.setUser(this);
@@ -119,10 +127,46 @@ public class User {
     @Override
     public String toString() {
         return "User{" +
-               "id=" + id +
-               ", username='" + username + '\'' +
-               ", email='" + email + '\'' +
-               ", role='" + role + '\'' +
-               '}';
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", role='" + role + '\'' +
+                '}';
+    }
+
+
+    // **********************************************
+    // METODI IMPLEMENTATI DALL'INTERFACCIA UserDetails
+    // **********************************************
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        // Converte la stringa del ruolo (es. "USER", "ADMIN") in un'istanza di GrantedAuthority
+        // Spring Security si aspetta le autorità in formato "ROLE_NOME_RUOLO" per l'annotazione @PreAuthorize
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        // Indica se l'account dell'utente è scaduto. Per ora, sempre true.
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        // Indica se l'account dell'utente è bloccato. Per ora, sempre true.
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        // Indica se le credenziali dell'utente (password) sono scadute. Per ora, sempre true.
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        // Indica se l'utente è abilitato (attivo). Per ora, sempre true.
+        return true;
     }
 }

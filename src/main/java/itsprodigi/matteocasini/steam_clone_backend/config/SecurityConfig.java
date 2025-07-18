@@ -1,30 +1,43 @@
 package itsprodigi.matteocasini.steam_clone_backend.config;
 
+import itsprodigi.matteocasini.steam_clone_backend.filter.JwtAuthFilter; // Importa il nostro filtro JWT
+import itsprodigi.matteocasini.steam_clone_backend.service.security.CustomUserDetailsService; // Importa il nostro UserDetailsService
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager; // Importa AuthenticationManager
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider; // Importa DaoAuthenticationProvider
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration; // Importa AuthenticationConfiguration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy; // Importa SessionCreationPolicy
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter; // Importa UsernamePasswordAuthenticationFilter
 
 /**
  * Classe di configurazione per la sicurezza dell'applicazione.
  * Qui definiamo i Bean relativi a Spring Security, come il PasswordEncoder
- * e le regole di autorizzazione per gli endpoint HTTP.
- *
- * ATTENZIONE: La configurazione attuale permette tutte le richieste su /api/** senza autenticazione
- * ed è intesa SOLO per la fase di SVILUPPO e TEST.
- * In un ambiente di PRODUZIONE, saranno necessarie regole di sicurezza molto più robuste.
+ * e le regole di autorizzazione per gli endpoint HTTP, integrando l'autenticazione JWT.
  */
-@Configuration // Indica a Spring che questa classe contiene definizioni di Bean e configurazioni.
-@EnableWebSecurity // Abilita le funzionalità di sicurezza web di Spring Security.
+@Configuration
+@EnableWebSecurity
 public class SecurityConfig {
+
+    private final JwtAuthFilter jwtAuthFilter; // Inietta il nostro filtro JWT
+    private final CustomUserDetailsService userDetailsService; // Inietta il nostro UserDetailsService
+
+    // Costruttore per l'iniezione delle dipendenze
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter, CustomUserDetailsService userDetailsService) {
+        this.jwtAuthFilter = jwtAuthFilter;
+        this.userDetailsService = userDetailsService;
+    }
 
     /**
      * Definisce un Bean per il PasswordEncoder.
      * Utilizza BCryptPasswordEncoder, un algoritmo di hashing robusto per le password.
+     *
      * @return Un'istanza di BCryptPasswordEncoder.
      */
     @Bean
@@ -33,9 +46,37 @@ public class SecurityConfig {
     }
 
     /**
+     * Definisce un Bean per l'AuthenticationManager.
+     * Questo è il bean che il nostro AuthController utilizzerà per autenticare gli utenti.
+     *
+     * @param config L'AuthenticationConfiguration fornita da Spring.
+     * @return Un'istanza di AuthenticationManager.
+     * @throws Exception Se si verifica un errore durante la configurazione.
+     */
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
+    /**
+     * Definisce il DaoAuthenticationProvider.
+     * Indica a Spring Security quale UserDetailsService usare per caricare gli utenti
+     * e quale PasswordEncoder usare per verificare le password.
+     *
+     * @return Un'istanza di DaoAuthenticationProvider.
+     */
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService); // Il nostro CustomUserDetailsService
+        authProvider.setPasswordEncoder(passwordEncoder()); // Il nostro PasswordEncoder
+        return authProvider;
+    }
+
+    /**
      * Definisce la catena di filtri di sicurezza HTTP.
      * Questo è il punto centrale dove si configurano le regole di autorizzazione
-     * per i diversi percorsi URL.
+     * per i diversi percorsi URL e si integra il filtro JWT.
      *
      * @param http L'oggetto HttpSecurity per configurare le regole di sicurezza.
      * @return La catena di filtri di sicurezza configurata.
@@ -44,18 +85,33 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // Disabilita la protezione CSRF (Cross-Site Request Forgery).
-            // È comune disabilitarla per API REST stateless che usano token (es. JWT).
-            // In produzione, valuta attentamente i rischi o abilitala con token appropriati.
-            .csrf(AbstractHttpConfigurer::disable)
-            // Configura le regole di autorizzazione per le richieste HTTP.
-            .authorizeHttpRequests(authorize -> authorize
-                // Permette l'accesso a tutti gli endpoint che iniziano con /api/
-                // Questa regola è PERICOLOSA IN PRODUZIONE, usala solo per lo sviluppo.
-                .requestMatchers("/api/**").permitAll()
-                // Tutte le altre richieste richiedono autenticazione.
-                .anyRequest().authenticated()
-            );
+                // Disabilita la protezione CSRF (Cross-Site Request Forgery).
+                // Essenziale per API REST stateless che usano token (es. JWT).
+                .csrf(AbstractHttpConfigurer::disable)
+                // Configura le regole di autorizzazione per le richieste HTTP.
+                .authorizeHttpRequests(authorize -> authorize
+                        // Permetti l'accesso all'endpoint di login senza autenticazione
+                        .requestMatchers("/api/auth/login").permitAll()
+                        // Permetti l'accesso all'endpoint di registrazione (se lo avrai)
+                        .requestMatchers("/api/users/register").permitAll() // Presupponendo un futuro endpoint di registrazione
+                        // Tutte le altre richieste che iniziano con /api/ richiedono autenticazione
+                        .requestMatchers("/api/**").authenticated()
+                        // Tutte le altre richieste non specificate non sono autorizzate
+                        .anyRequest().denyAll() // Nega l'accesso a qualsiasi altra rotta non esplicitamente permessa o autenticata
+                )
+                // Configura la gestione delle sessioni per essere stateless.
+                // Ciò significa che Spring Security non creerà né utilizzerà sessioni HTTP.
+                // Questo è il comportamento desiderato quando si usano i JWT, in quanto ogni richiesta
+                // è autosufficiente e contiene le proprie informazioni di autenticazione.
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                // Aggiunge il nostro AuthenticationProvider.
+                .authenticationProvider(authenticationProvider())
+                // Aggiunge il nostro filtro JWT prima del filtro di autenticazione standard di Spring Security.
+                // Questo fa sì che il nostro filtro JWT venga eseguito per primo per validare il token.
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
         // Costruisce e restituisce la catena di filtri di sicurezza.
         return http.build();
     }
