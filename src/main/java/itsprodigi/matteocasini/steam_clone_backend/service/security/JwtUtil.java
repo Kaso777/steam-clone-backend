@@ -1,6 +1,8 @@
 package itsprodigi.matteocasini.steam_clone_backend.service.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -9,6 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+
+import javax.crypto.SecretKey;
 
 import java.security.Key;
 import java.util.Date;
@@ -58,20 +62,14 @@ public class JwtUtil {
      * @return tutti i claims come oggetto Claims
      */
     private Claims extractAllClaims(String token) {
-        return Jwts
-                .parserBuilder() // Costruisce un parser JWT
-                .setSigningKey(getSignKey()) // Imposta la chiave per la firma
-                .build()
-                .parseClaimsJws(token) // Parsea e verifica il token
-                .getBody(); // Ritorna il corpo (claims)
-    }
+        JwtParser parser = Jwts
+                .parser() // nuova sintassi
+                .verifyWith(getSignKey())
+                .build();
 
-    /**
-     * Genera un token JWT a partire dai dati dell'utente autenticato.
-     * Include anche i ruoli dell'utente come claim personalizzato ("roles").
-     * @param userDetails oggetto UserDetails dell'utente
-     * @return il token JWT generato
-     */
+        Jws<Claims> claimsJws = parser.parseSignedClaims(token);
+        return claimsJws.getPayload();
+    }
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         
@@ -95,7 +93,7 @@ public class JwtUtil {
                 .subject(userName) // Imposta lo username come subject
                 .issuedAt(new Date(System.currentTimeMillis())) // Data di emissione
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME)) // Scadenza del token
-                .signWith(getSignKey(), SignatureAlgorithm.HS256) // Firma HMAC con algoritmo SHA-256
+                .signWith(getSignKey(), Jwts.SIG.HS256)
                 .compact(); // Compatta il tutto in una stringa JWT
     }
 
@@ -128,14 +126,11 @@ public class JwtUtil {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    /**
-     * Converte la chiave segreta (in Base64) in una chiave HMAC utilizzabile per firmare/verificare i token.
-     * @return la chiave segreta come oggetto Key
-     */
-    private Key getSignKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY); // Decodifica Base64
-        return Keys.hmacShaKeyFor(keyBytes); // Crea la chiave HMAC
-    }
+    private SecretKey getSignKey() {
+    byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
+    return Keys.hmacShaKeyFor(keyBytes);
+}
+
 }
 // Questo metodo è utilizzato per ottenere la chiave segreta in un formato compatibile con JWT. Genera e valida i token JWT utilizzando questa chiave.
 

@@ -4,6 +4,7 @@ import itsprodigi.matteocasini.steam_clone_backend.filter.JwtAuthFilter; // Impo
 import itsprodigi.matteocasini.steam_clone_backend.service.security.CustomUserDetailsService; // Importa il nostro UserDetailsService
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager; // Importa AuthenticationManager
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider; // Importa DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration; // Importa AuthenticationConfiguration
@@ -92,8 +93,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         // Permetti l'accesso all'endpoint di login senza autenticazione
                         .requestMatchers("/api/auth/login").permitAll()
-                        // Permetti l'accesso all'endpoint di registrazione (se lo avrai)
-                        .requestMatchers("/api/users/register").permitAll() // Presupponendo un futuro endpoint di registrazione
+                        // Permetti l'accesso all'endpoint di registrazione
+                        .requestMatchers("/api/auth/register").permitAll()
+                        // Endpoint accessibili SOLO agli ADMIN
+                        .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
                         // Tutte le altre richieste che iniziano con /api/ richiedono autenticazione
                         .requestMatchers("/api/**").authenticated()
                         // Tutte le altre richieste non specificate non sono autorizzate
