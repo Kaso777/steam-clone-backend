@@ -138,3 +138,19 @@ public class JwtUtil {
     }
 }
 // Questo metodo è utilizzato per ottenere la chiave segreta in un formato compatibile con JWT. Genera e valida i token JWT utilizzando questa chiave.
+
+/*
+    A cosa serve questa classe?
+
+    Gestione dei JWT (token di autenticazione) nel contesto di un'app Spring Security.
+
+    Viene usata per:
+
+        ✅ Generare un token per un utente autenticato
+
+        ✅ Estrarre informazioni (username, ruoli, scadenza) da un token ricevuto
+
+        ✅ Validare che un token sia ancora valido
+
+
+ */

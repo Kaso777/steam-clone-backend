@@ -1,14 +1,17 @@
 package itsprodigi.matteocasini.steam_clone_backend.controller.auth;
 
-
-import itsprodigi.matteocasini.steam_clone_backend.dto.auth.LoginRequest; // Il DTO della richiesta di login
-import itsprodigi.matteocasini.steam_clone_backend.repository.UserRepository; // Il tuo UserRepository
-import itsprodigi.matteocasini.steam_clone_backend.service.security.JwtUtil; // Il nostro JwtUtil
+import itsprodigi.matteocasini.steam_clone_backend.dto.auth.LoginRequest;
+import itsprodigi.matteocasini.steam_clone_backend.dto.auth.RegisterRequest; // Nuovo import
+import itsprodigi.matteocasini.steam_clone_backend.model.User; // Import dell'entità User
+import itsprodigi.matteocasini.steam_clone_backend.repository.UserRepository;
+import itsprodigi.matteocasini.steam_clone_backend.service.security.JwtUtil;
+import org.springframework.http.HttpStatus; // Nuovo import
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder; // Nuovo import
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,22 +21,24 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Controller per la gestione dell'autenticazione degli utenti.
- * Espone un endpoint per il login che restituisce un JWT in caso di successo.
+ * Controller per la gestione dell'autenticazione e registrazione degli utenti.
+ * Espone endpoint per login e registrazione.
  */
-@RestController // Indica che questa è una classe Controller REST.
-@RequestMapping("/api/auth") // Mappa tutte le richieste a /api/auth
+@RestController
+@RequestMapping("/api/auth") // Lasciamo /api/auth come da tua decisione
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
-    private final UserRepository userRepository; // Aggiungiamo UserRepository
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder; // Iniezione di PasswordEncoder
 
     // Costruttore per l'iniezione delle dipendenze.
-    public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, UserRepository userRepository) {
+    public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder; // Assegna PasswordEncoder
     }
 
     /**
@@ -44,50 +49,62 @@ public class AuthController {
      * @param loginRequest Il DTO contenente username e password per il login.
      * @return ResponseEntity contenente il JWT in caso di successo, o uno stato di errore.
      */
-    @PostMapping("/login") // Mappa le richieste POST a /api/auth/login
+    @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
-            // Autentica l'utente usando l'AuthenticationManager di Spring Security.
-            // Questo processo usa il CustomUserDetailsService per caricare l'utente
-            // e il PasswordEncoder per verificare la password.
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
             );
 
-            // Se l'autenticazione ha successo, recupera i dettagli dell'utente.
-            // L'oggetto 'authentication.getPrincipal()' sarà il nostro oggetto User (UserDetails).
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-            // Genera il token JWT per l'utente autenticato.
             String jwt = jwtUtil.generateToken(userDetails);
 
-            // Recupera l'UUID dell'utente dal database per includerlo nella risposta
-            // (Assumiamo che il tuo UserDetails sia la tua entità User)
-            // Se la tua entità User implementa UserDetails, puoi castare direttamente:
-            // User loggedInUser = (User) userDetails;
-            // UUID userId = loggedInUser.getId();
-
-            // Per semplicità, recuperiamo l'utente dal repository per ottenere l'ID,
-            // dato che userDetails non ha direttamente getId().
-            // Assicurati che il tuo UserDetails sia la tua entità User,
-            // altrimenti dovrai modificare qui per recuperare l'ID correttamente.
             String userId = userRepository.findByUsername(loginRequest.getUsername())
-                            .map(user -> user.getId().toString()) // Converti UUID in String
-                            .orElse(null); // O gestisci l'errore se l'utente non viene trovato (improbabile qui)
+                            .map(user -> user.getId().toString())
+                            .orElse(null);
 
-
-            // Crea una mappa per la risposta contenente il JWT e l'ID utente.
             Map<String, String> response = new HashMap<>();
             response.put("jwt", jwt);
-            response.put("userId", userId); // Aggiungi l'UUID dell'utente nella risposta
+            response.put("userId", userId);
 
-            // Restituisce la risposta con il JWT e l'ID utente.
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            // Cattura eventuali eccezioni durante l'autenticazione (es. credenziali errate)
-            // e restituisce una risposta di errore.
             return ResponseEntity.badRequest().body("Errore di autenticazione: " + e.getMessage());
         }
+    }
+
+    /**
+     * Gestisce la richiesta di registrazione di un nuovo utente.
+     * Verifica l'unicità di username ed email, cripta la password e salva il nuovo utente.
+     *
+     * @param registerRequest Il DTO contenente username, email e password per la registrazione.
+     * @return ResponseEntity che indica il successo o il fallimento della registrazione.
+     */
+    @PostMapping("/register") // Nuovo endpoint per la registrazione
+    public ResponseEntity<?> registerUser(@RequestBody RegisterRequest registerRequest) {
+        // 1. Controlla se username è già in uso
+        if (userRepository.findByUsername(registerRequest.getUsername()).isPresent()) {
+            return new ResponseEntity<>("Username already taken!", HttpStatus.BAD_REQUEST);
+        }
+
+        // 2. Controlla se email è già in uso
+        if (userRepository.findByEmail(registerRequest.getEmail()).isPresent()) {
+            return new ResponseEntity<>("Email already in use!", HttpStatus.BAD_REQUEST);
+        }
+
+        // 3. Crea un nuovo utente
+        User newUser = new User();
+        newUser.setUsername(registerRequest.getUsername());
+        newUser.setEmail(registerRequest.getEmail());
+        newUser.setPassword(passwordEncoder.encode(registerRequest.getPassword())); // Cripta la password
+        newUser.setRole("USER"); // Assegna il ruolo predefinito "USER"
+
+        // 4. Salva l'utente nel database
+        userRepository.save(newUser);
+
+        // 5. Restituisce una risposta di successo
+        return new ResponseEntity<>("User registered successfully!", HttpStatus.CREATED);
     }
 }
