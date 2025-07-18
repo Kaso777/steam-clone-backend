@@ -18,8 +18,7 @@ public class UserResponseDTO {
         this.id = user.getId(); // Mappa l'ID (UUID) dell'entità all'UUID del DTO
         this.username = user.getUsername();
         this.email = user.getEmail();
-        this.role = user.getRole();
-        // NOTA: NON includiamo la password nel ResponseDTO per sicurezza!
+        this.role = user.getRole().name(); // Mappa il ruolo come stringa
     }
 
     // Costruttore con tutti i campi (se lo avevi, puoi tenerlo)

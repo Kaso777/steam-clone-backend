@@ -15,6 +15,8 @@ import java.util.Optional; // Per gestire la possibile assenza di un valore
 import java.util.UUID; // Per gli ID univoci degli utenti
 import java.util.stream.Collectors; // Per collezionare elementi da uno stream
 
+import itsprodigi.matteocasini.steam_clone_backend.enums.Role;
+
 /**
  * Implementazione concreta dell'interfaccia UserService.
  * Questa classe contiene la logica di business effettiva per la gestione degli Utenti.
@@ -72,7 +74,14 @@ public class UserServiceImpl implements UserService { // Implementa l'interfacci
         //    È una best practice di sicurezza fondamentale: MAI salvare password in chiaro nel database.
         user.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
         // 4. Imposta il ruolo dell'utente, come specificato nel DTO di richiesta.
-        user.setRole(userRequestDTO.getRole());
+        try {
+            // Converte la stringa del ruolo in un valore dell'enum Role
+            user.setRole(Role.valueOf(userRequestDTO.getRole()));
+        } catch (IllegalArgumentException e) {
+            // Gestisce il caso in cui il ruolo fornito non è valido
+            throw new RuntimeException("Ruolo non valido: " + userRequestDTO.getRole() + ". Ruoli consentiti: " +
+                    java.util.Arrays.toString(Role.values()));
+        }
 
         // 5. Salva la nuova entità User nel database tramite il UserRepository.
         User savedUser = userRepository.save(user);
@@ -155,7 +164,14 @@ public class UserServiceImpl implements UserService { // Implementa l'interfacci
             user.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
         }
         // 6. Aggiorna il ruolo dell'utente.
-        user.setRole(userRequestDTO.getRole());
+        try {
+            // Converte la stringa del ruolo in un valore dell'enum Role
+            user.setRole(Role.valueOf(userRequestDTO.getRole()));
+        } catch (IllegalArgumentException e) {
+            // Gestisce il caso in cui il ruolo fornito non è valido
+            throw new RuntimeException("Ruolo non valido: " + userRequestDTO.getRole() + ". Ruoli consentiti: " +
+                    java.util.Arrays.toString(Role.values()));
+        }
 
         // 7. Salva l'entità User aggiornata nel database.
         User updatedUser = userRepository.save(user);
@@ -200,7 +216,7 @@ public class UserServiceImpl implements UserService { // Implementa l'interfacci
         dto.setId(user.getId());
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
-        dto.setRole(user.getRole()); // Popola il campo 'role' nel DTO di risposta.
+        dto.setRole(user.getRole().name()); // Mappa il ruolo come stringa (es. "ROLE_USER")
 
         // NOTA: Come concordato, non includiamo qui UserProfileResponseDTO nidificato
         // per mantenere UserResponseDTO più semplice e focalizzato sui dati base dell'utente.

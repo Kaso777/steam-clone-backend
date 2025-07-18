@@ -9,15 +9,15 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import itsprodigi.matteocasini.steam_clone_backend.enums.Role;
 
 @Entity
 @Table(name = "users")
-// Implementiamo l'interfaccia UserDetails
-public class User implements UserDetails { // <-- AGGIUNTO 'implements UserDetails'
+public class User implements UserDetails {
 
-    @Id // Indica che questo campo è la chiave primaria
-    @GeneratedValue // Permette a Hibernate di generare il valore
-    @UuidGenerator // Questa annotazione specifica il generatore UUID
+    @Id
+    @GeneratedValue
+    @UuidGenerator
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
@@ -30,15 +30,15 @@ public class User implements UserDetails { // <-- AGGIUNTO 'implements UserDetai
     @Column(name = "password", nullable = false, length = 255)
     private String password;
 
-    @Column(name = "role", nullable = false, length = 20) // "USER" o "ADMIN"
-    private String role; // Questo campo verrà utilizzato per i ruoli/autorizzazioni
+    // --- MODIFICATO QUI ---
+    @Enumerated(EnumType.STRING) // Indica a JPA di salvare l'enum come stringa nel DB (es. "ROLE_USER")
+    @Column(name = "role", nullable = false, length = 20)
+    private Role role; // <-- CAMBIATO DA String A Role
+    // ----------------------
 
-    // Relazione OneToOne con UserProfile
-    // Questo lato è il non proprietario della relazione (non contiene la FK)
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private UserProfile userProfile;
 
-    // Relazione OneToMany con UserGame (per la libreria, lato non proprietario)
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserGame> userGames = new HashSet<>();
 
@@ -46,19 +46,20 @@ public class User implements UserDetails { // <-- AGGIUNTO 'implements UserDetai
     public User() {
     }
 
-    public User(String username, String email, String password, String role) {
+    // --- MODIFICATO QUI ---
+    public User(String username, String email, String password, Role role) { // <-- TIPO DI 'role' CAMBIATO
         this.username = username;
         this.email = email;
         this.password = password;
         this.role = role;
     }
+    // ----------------------
 
-    // Getter (esistenti)
+    // Getter
     public UUID getId() {
         return id;
     }
 
-    // Nota: getUsername() e getPassword() esistono già e sono richiesti da UserDetails
     public String getUsername() {
         return username;
     }
@@ -71,9 +72,11 @@ public class User implements UserDetails { // <-- AGGIUNTO 'implements UserDetai
         return password;
     }
 
-    public String getRole() {
+    // --- MODIFICATO QUI ---
+    public Role getRole() { // <-- TIPO DI RITORNO CAMBIATO
         return role;
     }
+    // ----------------------
 
     public UserProfile getUserProfile() {
         return userProfile;
@@ -100,20 +103,19 @@ public class User implements UserDetails { // <-- AGGIUNTO 'implements UserDetai
         this.password = password;
     }
 
-    public void setRole(String role) {
+    // --- MODIFICATO QUI ---
+    public void setRole(Role role) { // <-- TIPO DI PARAMETRO CAMBIATO
         this.role = role;
     }
+    // ----------------------
 
     public void setUserProfile(UserProfile userProfile) {
         this.userProfile = userProfile;
         if (userProfile != null) {
-            userProfile.setUser(this); // Mantiene la bidirezionalità
+            userProfile.setUser(this);
         }
     }
-    // L'if sopra serve a garantire che quando si imposta un UserProfile, il campo user di UserProfile venga aggiornato correttamente per
-    // avere una relazione bidirezionale corretta degli oggetti Java utilizzati in memoria. 
 
-    // Helper method to add a UserGame
     public void addUserGame(UserGame userGame) {
         userGames.add(userGame);
         userGame.setUser(this);
@@ -130,10 +132,9 @@ public class User implements UserDetails { // <-- AGGIUNTO 'implements UserDetai
                 "id=" + id +
                 ", username='" + username + '\'' +
                 ", email='" + email + '\'' +
-                ", role='" + role + '\'' +
+                ", role='" + role + '\'' + // Qui verrà stampato il nome dell'enum (es. ROLE_USER)
                 '}';
     }
-
 
     // **********************************************
     // METODI IMPLEMENTATI DALL'INTERFACCIA UserDetails
@@ -141,32 +142,29 @@ public class User implements UserDetails { // <-- AGGIUNTO 'implements UserDetai
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Converte la stringa del ruolo (es. "USER", "ADMIN") in un'istanza di GrantedAuthority
-        // Spring Security si aspetta le autorità in formato "ROLE_NOME_RUOLO" per l'annotazione @PreAuthorize
-        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
+        // --- MODIFICATO QUI ---
+        // Poiché il nostro enum Role già include "ROLE_", possiamo usarlo direttamente.
+        return Collections.singletonList(new SimpleGrantedAuthority(role.name()));
+        // ----------------------
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        // Indica se l'account dell'utente è scaduto. Per ora, sempre true.
         return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        // Indica se l'account dell'utente è bloccato. Per ora, sempre true.
         return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        // Indica se le credenziali dell'utente (password) sono scadute. Per ora, sempre true.
         return true;
     }
 
     @Override
     public boolean isEnabled() {
-        // Indica se l'utente è abilitato (attivo). Per ora, sempre true.
         return true;
     }
 }
