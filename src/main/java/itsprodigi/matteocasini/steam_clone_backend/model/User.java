@@ -142,10 +142,7 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // --- MODIFICATO QUI ---
-        // Poiché il nostro enum Role già include "ROLE_", possiamo usarlo direttamente.
-        return Collections.singletonList(new SimpleGrantedAuthority(role.name()));
-        // ----------------------
+        return List.of(new SimpleGrantedAuthority(this.role.name()));
     }
 
     @Override
@@ -167,4 +164,7 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    
+
 }

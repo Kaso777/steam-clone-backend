@@ -48,6 +48,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
+                                        String path = request.getServletPath();
+if (path.startsWith("/api/auth")) {
+    filterChain.doFilter(request, response);
+    return;
+}
+
+
         // 1. Estrae l'header di autorizzazione.
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
@@ -73,6 +80,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             // 6. Valida il token JWT.
             if (jwtUtil.validateToken(jwt, userDetails)) {
+                System.out.println("Authenticated user: " + userDetails.getUsername());
+System.out.println("Authorities: " + userDetails.getAuthorities());
+
                 // Se il token è valido, crea un oggetto di autenticazione.
                 // UsernamePasswordAuthenticationToken è usato per rappresentare l'utente autenticato.
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(

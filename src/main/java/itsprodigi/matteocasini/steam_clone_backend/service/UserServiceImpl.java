@@ -10,12 +10,18 @@ import org.springframework.security.crypto.password.PasswordEncoder; // Per hash
 import org.springframework.stereotype.Service; // Indica che questa è una classe di servizio Spring
 import org.springframework.transaction.annotation.Transactional; // Per la gestione delle transazioni di database
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.AccessDeniedException;
+
+
 import java.util.List; // Per liste di oggetti
 import java.util.Optional; // Per gestire la possibile assenza di un valore
 import java.util.UUID; // Per gli ID univoci degli utenti
 import java.util.stream.Collectors; // Per collezionare elementi da uno stream
 
 import itsprodigi.matteocasini.steam_clone_backend.enums.Role;
+import itsprodigi.matteocasini.steam_clone_backend.exception.ResourceNotFoundException;
 
 /**
  * Implementazione concreta dell'interfaccia UserService.
@@ -99,12 +105,10 @@ public class UserServiceImpl implements UserService { // Implementa l'interfacci
      */
     @Override // Indica che questo metodo implementa un metodo definito nell'interfaccia UserService.
     public Optional<UserResponseDTO> getUserById(UUID id) {
-        // Cerca l'entità User nel database tramite il suo ID.
-        return userRepository.findById(id)
-                // Se l'Optional contiene un'entità User (cioè l'utente è stato trovato),
-                // applica il metodo 'convertToResponseDto' per trasformarla in un DTO.
-                .map(this::convertToResponseDto);
-    }
+    User user = userRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Utente con ID " + id + " non trovato"));
+    return Optional.of(convertToResponseDto(user));
+}
 
     /**
      * Implementazione del metodo per recuperare tutti gli utenti registrati nel sistema.
@@ -123,61 +127,83 @@ public class UserServiceImpl implements UserService { // Implementa l'interfacci
 
     /**
      * Implementazione del metodo per aggiornare i dati di un utente esistente.
-     * Il metodo cerca l'utente per ID, verifica l'unicità dello username e dell'email (escludendo l'utente stesso),
-     * aggiorna i campi dell'entità con i nuovi dati dal DTO di richiesta e salva le modifiche.
-     * @param id L'ID dell'utente da aggiornare.
-     * @param userRequestDTO Il DTO contenente i nuovi dati dell'utente (username, email, password, role).
-     * @return Il UserResponseDTO dell'utente aggiornato.
-     * @throws RuntimeException se l'utente non viene trovato o se username/email sono già in uso da altri utenti.
-     */
-    @Override // Indica che questo metodo implementa un metodo definito nell'interfaccia UserService.
-    @Transactional // Assicura che l'operazione di aggiornamento sia atomica.
-    public UserResponseDTO updateUser(UUID id, UserRequestDTO userRequestDTO) {
-        // 1. Trova l'utente da aggiornare per ID. Se l'utente non esiste, lancia un'eccezione.
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Utente non trovato con ID: " + id));
+    */
+     @Override
+@Transactional
+public UserResponseDTO updateUser(UUID id, UserRequestDTO userRequestDTO) {
+    // 1. Recupera l'utente autenticato
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    User currentUser = (User) auth.getPrincipal();
 
-        // 2. Verifica l'unicità dello username:
-        //    Cerca un utente con lo username fornito. Se esiste, controlla che non sia l'utente che stiamo aggiornando.
-        //    Questo impedisce a un utente di cambiare il suo username con uno già preso da un altro utente.
-        userRepository.findByUsername(userRequestDTO.getUsername())
-                .ifPresent(existingUser -> {
-                    if (!existingUser.getId().equals(id)) { // Se l'ID dell'utente esistente NON è l'ID dell'utente che stiamo aggiornando
-                        throw new RuntimeException("Nome utente '" + userRequestDTO.getUsername() + "' già in uso da un altro utente.");
-                    }
-                });
-        // 3. Verifica l'unicità dell'email:
-        //    Stesso principio dello username, ma per l'email.
-        userRepository.findByEmail(userRequestDTO.getEmail())
-                .ifPresent(existingUser -> {
-                    if (!existingUser.getId().equals(id)) {
-                        throw new RuntimeException("Email '" + userRequestDTO.getEmail() + "' già in uso da un altro utente.");
-                    }
-                });
+    boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
+    boolean isSelf = currentUser.getId().equals(id);
 
-        // 4. Aggiorna i campi dell'entità User con i dati provenienti dal DTO di richiesta.
-        user.setUsername(userRequestDTO.getUsername());
-        user.setEmail(userRequestDTO.getEmail());
-        // 5. Aggiorna la password solo se una nuova password è stata fornita nel DTO e non è vuota.
-        //    Questo permette agli utenti di aggiornare altri dati senza dover reinserire la password.
-        if (userRequestDTO.getPassword() != null && !userRequestDTO.getPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
-        }
-        // 6. Aggiorna il ruolo dell'utente.
-        try {
-            // Converte la stringa del ruolo in un valore dell'enum Role
-            user.setRole(Role.valueOf(userRequestDTO.getRole()));
-        } catch (IllegalArgumentException e) {
-            // Gestisce il caso in cui il ruolo fornito non è valido
-            throw new RuntimeException("Ruolo non valido: " + userRequestDTO.getRole() + ". Ruoli consentiti: " +
-                    java.util.Arrays.toString(Role.values()));
-        }
-
-        // 7. Salva l'entità User aggiornata nel database.
-        User updatedUser = userRepository.save(user);
-        // 8. Converte l'entità aggiornata in un UserResponseDTO e lo restituisce.
-        return convertToResponseDto(updatedUser);
+    // 2. Controlli di autorizzazione
+    if (!isAdmin && !isSelf) {
+        throw new AccessDeniedException("Non sei autorizzato a modificare questo utente.");
     }
+
+    // 3. Recupera l'utente da aggiornare
+    User userToUpdate = userRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Utente non trovato con ID: " + id));
+
+    // 4. Se è un utente normale, può aggiornare solo se stesso e solo email/password
+    if (!isAdmin) {
+        // Aggiorna solo email (se diversa)
+        if (!userToUpdate.getEmail().equals(userRequestDTO.getEmail())) {
+            userRepository.findByEmail(userRequestDTO.getEmail())
+                    .ifPresent(existingUser -> {
+                        if (!existingUser.getId().equals(id)) {
+                            throw new RuntimeException("Email '" + userRequestDTO.getEmail() + "' già in uso.");
+                        }
+                    });
+            userToUpdate.setEmail(userRequestDTO.getEmail());
+        }
+
+        // Aggiorna password se fornita
+        if (userRequestDTO.getPassword() != null && !userRequestDTO.getPassword().isBlank()) {
+            userToUpdate.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
+        }
+
+        // Ignora aggiornamenti a username e ruolo
+        return convertToResponseDto(userRepository.save(userToUpdate));
+    }
+
+    // 5. Se è ADMIN, può aggiornare tutto
+
+    // Controllo unicità username
+    userRepository.findByUsername(userRequestDTO.getUsername())
+            .ifPresent(existingUser -> {
+                if (!existingUser.getId().equals(id)) {
+                    throw new RuntimeException("Username '" + userRequestDTO.getUsername() + "' già in uso.");
+                }
+            });
+
+    // Controllo unicità email
+    userRepository.findByEmail(userRequestDTO.getEmail())
+            .ifPresent(existingUser -> {
+                if (!existingUser.getId().equals(id)) {
+                    throw new RuntimeException("Email '" + userRequestDTO.getEmail() + "' già in uso.");
+                }
+            });
+
+    // Aggiorna tutti i campi
+    userToUpdate.setUsername(userRequestDTO.getUsername());
+    userToUpdate.setEmail(userRequestDTO.getEmail());
+
+    if (userRequestDTO.getPassword() != null && !userRequestDTO.getPassword().isBlank()) {
+        userToUpdate.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
+    }
+
+    try {
+        userToUpdate.setRole(Role.valueOf(userRequestDTO.getRole()));
+    } catch (IllegalArgumentException e) {
+        throw new RuntimeException("Ruolo non valido: " + userRequestDTO.getRole());
+    }
+
+    return convertToResponseDto(userRepository.save(userToUpdate));
+}
+
 
     /**
      * Implementazione del metodo per eliminare un utente tramite il suo ID.
