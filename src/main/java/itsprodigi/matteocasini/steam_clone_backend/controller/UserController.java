@@ -136,4 +136,11 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+   @ExceptionHandler(RuntimeException.class)
+public ResponseEntity<String> fallbackHandler(RuntimeException ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Utente non trovato");
+}
+
+
 }

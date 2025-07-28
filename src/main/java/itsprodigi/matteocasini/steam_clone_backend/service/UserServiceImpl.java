@@ -71,6 +71,11 @@ public class UserServiceImpl implements UserService { // Implementa l'interfacci
         if (userRepository.existsByEmail(userRequestDTO.getEmail())) {
             throw new RuntimeException("Email '" + userRequestDTO.getEmail() + "' già in uso.");
         }
+        if (userRequestDTO.getPassword() == null || userRequestDTO.getPassword().length() < 6) {
+    throw new RuntimeException("La password deve avere almeno 6 caratteri");
+}
+
+
 
         // 2. Crea una nuova entità User e popola i suoi campi con i dati dal DTO di richiesta.
         User user = new User();
