@@ -35,12 +35,12 @@ public class SecurityConfig {
 
     // Costruttore per l'iniezione delle dipendenze
     public SecurityConfig(JwtAuthFilter jwtAuthFilter,
-                      CustomUserDetailsService userDetailsService,
-                      CustomAuthExceptionHandler authExceptionHandler) {
-    this.jwtAuthFilter = jwtAuthFilter;
-    this.userDetailsService = userDetailsService;
-    this.authExceptionHandler = authExceptionHandler;
-}
+                          CustomUserDetailsService userDetailsService,
+                          CustomAuthExceptionHandler authExceptionHandler) {
+        this.jwtAuthFilter = jwtAuthFilter;
+        this.userDetailsService = userDetailsService;
+        this.authExceptionHandler = authExceptionHandler;
+    }
 
     /**
      * Definisce un Bean per il PasswordEncoder.
@@ -98,20 +98,28 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 // Gestisce le eccezioni di autenticazione tramite il nostro CustomAuthExceptionHandler.
                 .exceptionHandling(ex -> ex
-    .authenticationEntryPoint(authExceptionHandler)
-    .accessDeniedHandler(authExceptionHandler)
-)
+                        .authenticationEntryPoint(authExceptionHandler)
+                        .accessDeniedHandler(authExceptionHandler)
+                )
 
                 // Configura le regole di autorizzazione per le richieste HTTP.
                 .authorizeHttpRequests(authorize -> authorize
-                        // Endpoint accessibili senza autenticazione
+                        // Endpoint accessibili senza autenticazione (es. /api/auth/register, /api/auth/login)
                         .requestMatchers("/api/auth/**").permitAll()
-                        // Endpoint accessibili SOLO agli ADMIN
+
+                        // NUOVA REGOLA: Endpoint DELETE per gli utenti, accessibile SOLO agli ADMIN
+                        // Questa regola DEVE venire prima di .requestMatchers("/api/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("ADMIN")
+
+                        // Endpoint GET per recuperare TUTTI gli utenti, accessibile SOLO agli ADMIN
                         .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
-                        // Tutte le altre richieste che iniziano con /api/ richiedono autenticazione
+
+                        // Tutte le altre richieste che iniziano con /api/ (es. GET singolo utente, PUT utente, ecc.)
+                        // richiedono solo autenticazione (qualsiasi utente loggato)
                         .requestMatchers("/api/**").authenticated()
-                        // Tutte le altre richieste non specificate non sono autorizzate
-                        .anyRequest().denyAll() // Nega l'accesso a qualsiasi altra rotta non esplicitamente permessa o autenticata
+
+                        // Nega l'accesso a qualsiasi altra rotta non esplicitamente permessa o autenticata
+                        .anyRequest().denyAll()
                 )
                 // Configura la gestione delle sessioni per essere stateless.
                 // Ciò significa che Spring Security non creerà né utilizzerà sessioni HTTP.

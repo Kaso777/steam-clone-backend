@@ -21,7 +21,7 @@ import java.util.UUID; // Per gli ID univoci degli utenti
 import java.util.stream.Collectors; // Per collezionare elementi da uno stream
 
 import itsprodigi.matteocasini.steam_clone_backend.enums.Role;
-import itsprodigi.matteocasini.steam_clone_backend.exception.ResourceNotFoundException;
+import itsprodigi.matteocasini.steam_clone_backend.exception.ResourceNotFoundException; // Importa la ResourceNotFoundException
 
 /**
  * Implementazione concreta dell'interfaccia UserService.
@@ -72,9 +72,8 @@ public class UserServiceImpl implements UserService { // Implementa l'interfacci
             throw new RuntimeException("Email '" + userRequestDTO.getEmail() + "' già in uso.");
         }
         if (userRequestDTO.getPassword() == null || userRequestDTO.getPassword().length() < 6) {
-    throw new RuntimeException("La password deve avere almeno 6 caratteri");
-}
-
+            throw new RuntimeException("La password deve avere almeno 6 caratteri");
+        }
 
 
         // 2. Crea una nuova entità User e popola i suoi campi con i dati dal DTO di richiesta.
@@ -110,10 +109,10 @@ public class UserServiceImpl implements UserService { // Implementa l'interfacci
      */
     @Override // Indica che questo metodo implementa un metodo definito nell'interfaccia UserService.
     public Optional<UserResponseDTO> getUserById(UUID id) {
-    User user = userRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Utente con ID " + id + " non trovato"));
-    return Optional.of(convertToResponseDto(user));
-}
+        User user = userRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Utente con ID " + id + " non trovato"));
+        return Optional.of(convertToResponseDto(user));
+    }
 
     /**
      * Implementazione del metodo per recuperare tutti gli utenti registrati nel sistema.
@@ -132,103 +131,102 @@ public class UserServiceImpl implements UserService { // Implementa l'interfacci
 
     /**
      * Implementazione del metodo per aggiornare i dati di un utente esistente.
-    */
-     @Override
-@Transactional
-public UserResponseDTO updateUser(UUID id, UserRequestDTO userRequestDTO) {
-    // 1. Recupera l'utente autenticato
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    User currentUser = (User) auth.getPrincipal();
+     */
+    @Override
+    @Transactional
+    public UserResponseDTO updateUser(UUID id, UserRequestDTO userRequestDTO) {
+        // 1. Recupera l'utente autenticato
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) auth.getPrincipal();
 
-    boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
-    boolean isSelf = currentUser.getId().equals(id);
+        boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
+        boolean isSelf = currentUser.getId().equals(id);
 
-    // 2. Controlli di autorizzazione
-    if (!isAdmin && !isSelf) {
-        throw new AccessDeniedException("Non sei autorizzato a modificare questo utente.");
-    }
+        // 2. Controlli di autorizzazione
+        if (!isAdmin && !isSelf) {
+            throw new AccessDeniedException("Non sei autorizzato a modificare questo utente.");
+        }
 
-    // 3. Recupera l'utente da aggiornare
-    User userToUpdate = userRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Utente non trovato con ID: " + id));
+        // 3. Recupera l'utente da aggiornare
+        User userToUpdate = userRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Utente non trovato con ID: " + id));
 
-    // 4. Se è un utente normale, può aggiornare solo se stesso e solo email/password
-    if (!isAdmin) {
-        // Aggiorna solo email (se diversa)
-        if (!userToUpdate.getEmail().equals(userRequestDTO.getEmail())) {
-            userRepository.findByEmail(userRequestDTO.getEmail())
+        // 4. Se è un utente normale, può aggiornare solo se stesso e solo email/password
+        if (!isAdmin) {
+            // Aggiorna solo email (se diversa)
+            if (!userToUpdate.getEmail().equals(userRequestDTO.getEmail())) {
+                userRepository.findByEmail(userRequestDTO.getEmail())
+                        .ifPresent(existingUser -> {
+                            if (!existingUser.getId().equals(id)) {
+                                throw new RuntimeException("Email '" + userRequestDTO.getEmail() + "' già in uso.");
+                            }
+                        });
+                userToUpdate.setEmail(userRequestDTO.getEmail());
+            }
+
+            // Aggiorna password se fornita
+            if (userRequestDTO.getPassword() != null && !userRequestDTO.getPassword().isBlank()) {
+                userToUpdate.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
+            }
+
+            // Ignora aggiornamenti a username e ruolo
+            return convertToResponseDto(userRepository.save(userToUpdate));
+        }
+
+        // 5. Se è ADMIN, può aggiornare tutto
+
+        // Controllo unicità username
+        userRepository.findByUsername(userRequestDTO.getUsername())
+                    .ifPresent(existingUser -> {
+                        if (!existingUser.getId().equals(id)) {
+                            throw new RuntimeException("Username '" + userRequestDTO.getUsername() + "' già in uso.");
+                        }
+                    });
+
+        // Controllo unicità email
+        userRepository.findByEmail(userRequestDTO.getEmail())
                     .ifPresent(existingUser -> {
                         if (!existingUser.getId().equals(id)) {
                             throw new RuntimeException("Email '" + userRequestDTO.getEmail() + "' già in uso.");
                         }
                     });
-            userToUpdate.setEmail(userRequestDTO.getEmail());
-        }
 
-        // Aggiorna password se fornita
+        // Aggiorna tutti i campi
+        userToUpdate.setUsername(userRequestDTO.getUsername());
+        userToUpdate.setEmail(userRequestDTO.getEmail());
+
         if (userRequestDTO.getPassword() != null && !userRequestDTO.getPassword().isBlank()) {
             userToUpdate.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
         }
 
-        // Ignora aggiornamenti a username e ruolo
+        try {
+            userToUpdate.setRole(Role.valueOf(userRequestDTO.getRole()));
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Ruolo non valido: " + userRequestDTO.getRole());
+        }
+
         return convertToResponseDto(userRepository.save(userToUpdate));
     }
-
-    // 5. Se è ADMIN, può aggiornare tutto
-
-    // Controllo unicità username
-    userRepository.findByUsername(userRequestDTO.getUsername())
-            .ifPresent(existingUser -> {
-                if (!existingUser.getId().equals(id)) {
-                    throw new RuntimeException("Username '" + userRequestDTO.getUsername() + "' già in uso.");
-                }
-            });
-
-    // Controllo unicità email
-    userRepository.findByEmail(userRequestDTO.getEmail())
-            .ifPresent(existingUser -> {
-                if (!existingUser.getId().equals(id)) {
-                    throw new RuntimeException("Email '" + userRequestDTO.getEmail() + "' già in uso.");
-                }
-            });
-
-    // Aggiorna tutti i campi
-    userToUpdate.setUsername(userRequestDTO.getUsername());
-    userToUpdate.setEmail(userRequestDTO.getEmail());
-
-    if (userRequestDTO.getPassword() != null && !userRequestDTO.getPassword().isBlank()) {
-        userToUpdate.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
-    }
-
-    try {
-        userToUpdate.setRole(Role.valueOf(userRequestDTO.getRole()));
-    } catch (IllegalArgumentException e) {
-        throw new RuntimeException("Ruolo non valido: " + userRequestDTO.getRole());
-    }
-
-    return convertToResponseDto(userRepository.save(userToUpdate));
-}
 
 
     /**
      * Implementazione del metodo per eliminare un utente tramite il suo ID.
      * Il metodo verifica prima se l'utente esiste e poi procede con l'eliminazione.
      * @param id L'ID dell'utente da eliminare.
-     * @throws RuntimeException se l'utente con l'ID specificato non viene trovato.
+     * @throws ResourceNotFoundException se l'utente con l'ID specificato non viene trovato.
      */
     @Override // Indica che questo metodo implementa un metodo definito nell'interfaccia UserService.
     @Transactional // Assicura che l'operazione di eliminazione sia atomica.
     public void deleteUser(UUID id) {
-        // 1. Verifica se l'utente esiste prima di tentare l'eliminazione.
-        //    Questo previene un'eccezione se si tenta di eliminare un utente inesistente.
-        if (!userRepository.existsById(id)) {
-            throw new RuntimeException("Utente non trovato con ID: " + id);
-        }
-        // 2. Elimina l'utente dal database tramite il suo ID.
+        // 1. Recupera l'utente. Se non trovato, ResourceNotFoundException viene lanciata.
+        User userToDelete = userRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato con ID: " + id));
+
+        // 2. Elimina l'utente dal database tramite l'entità trovata.
         //    NOTA: Grazie alle configurazioni di cascata nelle relazioni di User (es. con UserProfile e UserGame),
         //    le entità correlate potrebbero essere eliminate automaticamente (se configurato con CascadeType.ALL e orphanRemoval).
         //    Assicurati che il comportamento di cascata sia quello desiderato.
-        userRepository.deleteById(id);
+        userRepository.delete(userToDelete);
     }
 
     // --- Metodi di Mappatura (Conversione tra Entità e DTO) ---

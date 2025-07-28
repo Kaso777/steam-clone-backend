@@ -3,11 +3,16 @@ package itsprodigi.matteocasini.steam_clone_backend.service;
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserRequestDTO;
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserResponseDTO;
 import itsprodigi.matteocasini.steam_clone_backend.enums.Role;
+import itsprodigi.matteocasini.steam_clone_backend.exception.ResourceNotFoundException; // Importa ResourceNotFoundException
 import itsprodigi.matteocasini.steam_clone_backend.model.User;
 import itsprodigi.matteocasini.steam_clone_backend.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.Authentication; // Importa Authentication
+import org.springframework.security.core.context.SecurityContext; // Importa SecurityContext
+import org.springframework.security.core.context.SecurityContextHolder; // Importa SecurityContextHolder
+import org.springframework.security.access.AccessDeniedException; // Importa AccessDeniedException
 
 import java.util.Optional;
 import java.util.List;
@@ -27,6 +32,9 @@ class UserServiceImplTest {
         userRepository = mock(UserRepository.class);
         passwordEncoder = mock(PasswordEncoder.class);
         userService = new UserServiceImpl(userRepository, passwordEncoder);
+
+        // Reset SecurityContextHolder per ogni test, se necessario per test con autenticazione
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -132,7 +140,8 @@ class UserServiceImplTest {
         UUID userId = UUID.randomUUID();
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> userService.getUserById(userId));
+        // Ora ci aspettiamo una ResourceNotFoundException, non una generica RuntimeException
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () -> userService.getUserById(userId));
         assertEquals("Utente con ID " + userId + " non trovato", ex.getMessage());
     }
 
@@ -177,22 +186,171 @@ class UserServiceImplTest {
         assertEquals("user2", result.get(1).getUsername());
     }
 
+    // TEST AGGIUNTI/MODIFICATI PER updateUser
+    @Test
+    void updateUser_adminCanUpdateAnyUser() {
+        UUID userIdToUpdate = UUID.randomUUID();
+        UserRequestDTO updateDto = new UserRequestDTO();
+        updateDto.setUsername("updatedUser");
+        updateDto.setEmail("updated@example.com");
+        updateDto.setPassword("newPassword");
+        updateDto.setRole("ROLE_USER");
+
+        User existingUser = new User();
+        existingUser.setId(userIdToUpdate);
+        existingUser.setUsername("oldUser");
+        existingUser.setEmail("old@example.com");
+        existingUser.setPassword("oldEncodedPassword");
+        existingUser.setRole(Role.ROLE_USER);
+
+        User adminUser = new User();
+        adminUser.setId(UUID.randomUUID());
+        adminUser.setRole(Role.ROLE_ADMIN); // Utente admin
+
+        // Mock SecurityContextHolder per simulare l'utente admin autenticato
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+        when(authentication.getPrincipal()).thenReturn(adminUser);
+
+        when(userRepository.findById(userIdToUpdate)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByUsername("updatedUser")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("updated@example.com")).thenReturn(Optional.empty());
+        when(passwordEncoder.encode("newPassword")).thenReturn("newEncodedPassword");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0)); // Restituisce l'oggetto salvato
+
+        UserResponseDTO result = userService.updateUser(userIdToUpdate, updateDto);
+
+        assertNotNull(result);
+        assertEquals("updatedUser", result.getUsername());
+        assertEquals("updated@example.com", result.getEmail());
+        assertEquals("ROLE_USER", result.getRole());
+        verify(userRepository, times(1)).save(any(User.class));
+    }
+
+    @Test
+    void updateUser_userCanUpdateSelf() {
+        UUID userId = UUID.randomUUID();
+        UserRequestDTO updateDto = new UserRequestDTO();
+        updateDto.setUsername("user"); // Username non dovrebbe cambiare per non-admin
+        updateDto.setEmail("updated_self@example.com");
+        updateDto.setPassword("newSelfPassword");
+        updateDto.setRole("ROLE_ADMIN"); // Ruolo non dovrebbe cambiare per non-admin
+
+        User existingUser = new User();
+        existingUser.setId(userId);
+        existingUser.setUsername("user");
+        existingUser.setEmail("original_self@example.com");
+        existingUser.setPassword("oldEncodedPassword");
+        existingUser.setRole(Role.ROLE_USER);
+
+        // Mock SecurityContextHolder per simulare l'utente normale autenticato
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+        when(authentication.getPrincipal()).thenReturn(existingUser); // L'utente autenticato è lo stesso che si aggiorna
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByEmail("updated_self@example.com")).thenReturn(Optional.empty());
+        when(passwordEncoder.encode("newSelfPassword")).thenReturn("newEncodedSelfPassword");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        UserResponseDTO result = userService.updateUser(userId, updateDto);
+
+        assertNotNull(result);
+        assertEquals("user", result.getUsername()); // Username non dovrebbe cambiare
+        assertEquals("updated_self@example.com", result.getEmail());
+        assertEquals("ROLE_USER", result.getRole()); // Ruolo non dovrebbe cambiare
+        verify(userRepository, times(1)).save(any(User.class));
+    }
+
+    @Test
+    void updateUser_userCannotUpdateOtherUser() {
+        UUID userIdToUpdate = UUID.randomUUID();
+        UUID otherUserId = UUID.randomUUID(); // ID di un altro utente
+        UserRequestDTO updateDto = new UserRequestDTO();
+        updateDto.setEmail("updated@example.com");
+
+        User otherUser = new User();
+        otherUser.setId(otherUserId);
+        otherUser.setRole(Role.ROLE_USER);
+
+        // Mock SecurityContextHolder per simulare un utente normale autenticato
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+        when(authentication.getPrincipal()).thenReturn(otherUser); // L'utente autenticato è 'otherUser'
+
+        AccessDeniedException ex = assertThrows(AccessDeniedException.class,
+                () -> userService.updateUser(userIdToUpdate, updateDto));
+
+        assertEquals("Non sei autorizzato a modificare questo utente.", ex.getMessage());
+        verify(userRepository, never()).findById(any(UUID.class)); // Non dovrebbe nemmeno tentare di trovare l'utente
+    }
+
+    @Test
+    void updateUser_userNotFound() {
+        UUID userId = UUID.randomUUID();
+        UserRequestDTO updateDto = new UserRequestDTO();
+        updateDto.setUsername("test");
+        updateDto.setEmail("test@example.com");
+        updateDto.setPassword("password123");
+        updateDto.setRole("ROLE_USER");
+
+        User adminUser = new User();
+        adminUser.setId(UUID.randomUUID());
+        adminUser.setRole(Role.ROLE_ADMIN);
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+        when(authentication.getPrincipal()).thenReturn(adminUser);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.empty()); // Utente non trovato
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> userService.updateUser(userId, updateDto));
+
+        assertEquals("Utente non trovato con ID: " + userId, ex.getMessage());
+    }
+
+
     @Test
     void deleteUser_success() {
         UUID id = UUID.randomUUID();
-        when(userRepository.existsById(id)).thenReturn(true);
-        doNothing().when(userRepository).deleteById(id);
+        User userToDelete = new User();
+        userToDelete.setId(id);
+        userToDelete.setUsername("testuser");
+        userToDelete.setEmail("test@example.com");
+        userToDelete.setRole(Role.ROLE_USER);
 
+        // Mock del comportamento di findById per restituire l'utente
+        when(userRepository.findById(id)).thenReturn(Optional.of(userToDelete));
+        // Mock del comportamento di delete per non fare nulla
+        doNothing().when(userRepository).delete(userToDelete); // Modificato da deleteById a delete(entity)
+
+        // Ci aspettiamo che non venga lanciata alcuna eccezione
         assertDoesNotThrow(() -> userService.deleteUser(id));
-        verify(userRepository).deleteById(id);
+
+        // Verifichiamo che delete(entity) sia stato chiamato
+        verify(userRepository).delete(userToDelete); // Modificato da deleteById a delete(entity)
     }
 
     @Test
     void deleteUser_userNotFound() {
         UUID id = UUID.randomUUID();
-        when(userRepository.existsById(id)).thenReturn(false);
+        // Mock del comportamento di findById per restituire Optional.empty()
+        when(userRepository.findById(id)).thenReturn(Optional.empty());
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> userService.deleteUser(id));
+        // Ci aspettiamo che venga lanciata ResourceNotFoundException
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () -> userService.deleteUser(id));
         assertEquals("Utente non trovato con ID: " + id, ex.getMessage());
+
+        // Verifichiamo che delete non sia mai stato chiamato
+        verify(userRepository, never()).delete(any(User.class));
     }
 }
