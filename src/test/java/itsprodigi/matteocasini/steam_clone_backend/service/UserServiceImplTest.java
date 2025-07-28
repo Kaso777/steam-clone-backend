@@ -3,20 +3,23 @@ package itsprodigi.matteocasini.steam_clone_backend.service;
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserRequestDTO;
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserResponseDTO;
 import itsprodigi.matteocasini.steam_clone_backend.enums.Role;
-import itsprodigi.matteocasini.steam_clone_backend.exception.ResourceNotFoundException; // Importa ResourceNotFoundException
+import itsprodigi.matteocasini.steam_clone_backend.exception.ResourceNotFoundException;
 import itsprodigi.matteocasini.steam_clone_backend.model.User;
 import itsprodigi.matteocasini.steam_clone_backend.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.core.Authentication; // Importa Authentication
-import org.springframework.security.core.context.SecurityContext; // Importa SecurityContext
-import org.springframework.security.core.context.SecurityContextHolder; // Importa SecurityContextHolder
-import org.springframework.security.access.AccessDeniedException; // Importa AccessDeniedException
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextImpl; // Importa SecurityContextImpl
 
 import java.util.Optional;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -33,7 +36,7 @@ class UserServiceImplTest {
         passwordEncoder = mock(PasswordEncoder.class);
         userService = new UserServiceImpl(userRepository, passwordEncoder);
 
-        // Reset SecurityContextHolder per ogni test, se necessario per test con autenticazione
+        // Pulisce il contesto di sicurezza prima di ogni test per isolarli
         SecurityContextHolder.clearContext();
     }
 
@@ -140,7 +143,6 @@ class UserServiceImplTest {
         UUID userId = UUID.randomUUID();
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        // Ora ci aspettiamo una ResourceNotFoundException, non una generica RuntimeException
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () -> userService.getUserById(userId));
         assertEquals("Utente con ID " + userId + " non trovato", ex.getMessage());
     }
@@ -186,7 +188,6 @@ class UserServiceImplTest {
         assertEquals("user2", result.get(1).getUsername());
     }
 
-    // TEST AGGIUNTI/MODIFICATI PER updateUser
     @Test
     void updateUser_adminCanUpdateAnyUser() {
         UUID userIdToUpdate = UUID.randomUUID();
@@ -205,20 +206,16 @@ class UserServiceImplTest {
 
         User adminUser = new User();
         adminUser.setId(UUID.randomUUID());
-        adminUser.setRole(Role.ROLE_ADMIN); // Utente admin
+        adminUser.setRole(Role.ROLE_ADMIN);
 
-        // Mock SecurityContextHolder per simulare l'utente admin autenticato
-        Authentication authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
-        when(authentication.getPrincipal()).thenReturn(adminUser);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(adminUser, null, adminUser.getAuthorities());
+        SecurityContextHolder.setContext(new SecurityContextImpl(authentication)); // Usiamo SecurityContextImpl
 
         when(userRepository.findById(userIdToUpdate)).thenReturn(Optional.of(existingUser));
         when(userRepository.findByUsername("updatedUser")).thenReturn(Optional.empty());
         when(userRepository.findByEmail("updated@example.com")).thenReturn(Optional.empty());
         when(passwordEncoder.encode("newPassword")).thenReturn("newEncodedPassword");
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0)); // Restituisce l'oggetto salvato
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         UserResponseDTO result = userService.updateUser(userIdToUpdate, updateDto);
 
@@ -233,10 +230,10 @@ class UserServiceImplTest {
     void updateUser_userCanUpdateSelf() {
         UUID userId = UUID.randomUUID();
         UserRequestDTO updateDto = new UserRequestDTO();
-        updateDto.setUsername("user"); // Username non dovrebbe cambiare per non-admin
+        updateDto.setUsername("user");
         updateDto.setEmail("updated_self@example.com");
         updateDto.setPassword("newSelfPassword");
-        updateDto.setRole("ROLE_ADMIN"); // Ruolo non dovrebbe cambiare per non-admin
+        updateDto.setRole("ROLE_ADMIN");
 
         User existingUser = new User();
         existingUser.setId(userId);
@@ -245,12 +242,8 @@ class UserServiceImplTest {
         existingUser.setPassword("oldEncodedPassword");
         existingUser.setRole(Role.ROLE_USER);
 
-        // Mock SecurityContextHolder per simulare l'utente normale autenticato
-        Authentication authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
-        when(authentication.getPrincipal()).thenReturn(existingUser); // L'utente autenticato è lo stesso che si aggiorna
+        Authentication authentication = new UsernamePasswordAuthenticationToken(existingUser, null, existingUser.getAuthorities());
+        SecurityContextHolder.setContext(new SecurityContextImpl(authentication)); // Usiamo SecurityContextImpl
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
         when(userRepository.findByEmail("updated_self@example.com")).thenReturn(Optional.empty());
@@ -260,16 +253,16 @@ class UserServiceImplTest {
         UserResponseDTO result = userService.updateUser(userId, updateDto);
 
         assertNotNull(result);
-        assertEquals("user", result.getUsername()); // Username non dovrebbe cambiare
+        assertEquals("user", result.getUsername());
         assertEquals("updated_self@example.com", result.getEmail());
-        assertEquals("ROLE_USER", result.getRole()); // Ruolo non dovrebbe cambiare
+        assertEquals("ROLE_USER", result.getRole());
         verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
     void updateUser_userCannotUpdateOtherUser() {
         UUID userIdToUpdate = UUID.randomUUID();
-        UUID otherUserId = UUID.randomUUID(); // ID di un altro utente
+        UUID otherUserId = UUID.randomUUID();
         UserRequestDTO updateDto = new UserRequestDTO();
         updateDto.setEmail("updated@example.com");
 
@@ -277,18 +270,14 @@ class UserServiceImplTest {
         otherUser.setId(otherUserId);
         otherUser.setRole(Role.ROLE_USER);
 
-        // Mock SecurityContextHolder per simulare un utente normale autenticato
-        Authentication authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
-        when(authentication.getPrincipal()).thenReturn(otherUser); // L'utente autenticato è 'otherUser'
+        Authentication authentication = new UsernamePasswordAuthenticationToken(otherUser, null, otherUser.getAuthorities());
+        SecurityContextHolder.setContext(new SecurityContextImpl(authentication)); // Usiamo SecurityContextImpl
 
         AccessDeniedException ex = assertThrows(AccessDeniedException.class,
                 () -> userService.updateUser(userIdToUpdate, updateDto));
 
-        assertEquals("Non sei autorizzato a modificare questo utente.", ex.getMessage());
-        verify(userRepository, never()).findById(any(UUID.class)); // Non dovrebbe nemmeno tentare di trovare l'utente
+        assertEquals("Access Denied", ex.getMessage());
+        verify(userRepository, never()).findById(any(UUID.class));
     }
 
     @Test
@@ -304,13 +293,10 @@ class UserServiceImplTest {
         adminUser.setId(UUID.randomUUID());
         adminUser.setRole(Role.ROLE_ADMIN);
 
-        Authentication authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
-        when(authentication.getPrincipal()).thenReturn(adminUser);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(adminUser, null, adminUser.getAuthorities());
+        SecurityContextHolder.setContext(new SecurityContextImpl(authentication)); // Usiamo SecurityContextImpl
 
-        when(userRepository.findById(userId)).thenReturn(Optional.empty()); // Utente non trovato
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> userService.updateUser(userId, updateDto));
@@ -328,29 +314,78 @@ class UserServiceImplTest {
         userToDelete.setEmail("test@example.com");
         userToDelete.setRole(Role.ROLE_USER);
 
-        // Mock del comportamento di findById per restituire l'utente
-        when(userRepository.findById(id)).thenReturn(Optional.of(userToDelete));
-        // Mock del comportamento di delete per non fare nulla
-        doNothing().when(userRepository).delete(userToDelete); // Modificato da deleteById a delete(entity)
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userToDelete, null, userToDelete.getAuthorities());
+        SecurityContextHolder.setContext(new SecurityContextImpl(authentication)); // Usiamo SecurityContextImpl
 
-        // Ci aspettiamo che non venga lanciata alcuna eccezione
+        when(userRepository.findById(id)).thenReturn(Optional.of(userToDelete));
+        doNothing().when(userRepository).delete(userToDelete);
+
         assertDoesNotThrow(() -> userService.deleteUser(id));
 
-        // Verifichiamo che delete(entity) sia stato chiamato
-        verify(userRepository).delete(userToDelete); // Modificato da deleteById a delete(entity)
+        verify(userRepository).delete(userToDelete);
     }
 
     @Test
     void deleteUser_userNotFound() {
         UUID id = UUID.randomUUID();
-        // Mock del comportamento di findById per restituire Optional.empty()
+        User authenticatedUser = new User();
+        authenticatedUser.setId(UUID.randomUUID());
+        authenticatedUser.setRole(Role.ROLE_USER);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(authenticatedUser, null, authenticatedUser.getAuthorities());
+        SecurityContextHolder.setContext(new SecurityContextImpl(authentication)); // Usiamo SecurityContextImpl
+
         when(userRepository.findById(id)).thenReturn(Optional.empty());
 
-        // Ci aspettiamo che venga lanciata ResourceNotFoundException
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () -> userService.deleteUser(id));
         assertEquals("Utente non trovato con ID: " + id, ex.getMessage());
 
-        // Verifichiamo che delete non sia mai stato chiamato
+        verify(userRepository, never()).delete(any(User.class));
+    }
+
+    @Test
+    void deleteUser_adminCanDeleteAnyUser() {
+        UUID idToDelete = UUID.randomUUID();
+        User userToDelete = new User();
+        userToDelete.setId(idToDelete);
+        userToDelete.setUsername("userToDelete");
+        userToDelete.setRole(Role.ROLE_USER);
+
+        User adminUser = new User();
+        adminUser.setId(UUID.randomUUID());
+        adminUser.setRole(Role.ROLE_ADMIN);
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(adminUser, null, adminUser.getAuthorities());
+        SecurityContextHolder.setContext(new SecurityContextImpl(authentication)); // Usiamo SecurityContextImpl
+
+        when(userRepository.findById(idToDelete)).thenReturn(Optional.of(userToDelete));
+        doNothing().when(userRepository).delete(userToDelete);
+
+        assertDoesNotThrow(() -> userService.deleteUser(idToDelete));
+        verify(userRepository).delete(userToDelete);
+    }
+
+    @Test
+    void deleteUser_userCannotDeleteOtherUser() {
+        UUID idToDelete = UUID.randomUUID();
+        UUID authenticatedUserId = UUID.randomUUID();
+        User userToDelete = new User();
+        userToDelete.setId(idToDelete);
+        userToDelete.setUsername("userToDelete");
+        userToDelete.setRole(Role.ROLE_USER);
+
+        User authenticatedUser = new User();
+        authenticatedUser.setId(authenticatedUserId);
+        authenticatedUser.setUsername("authenticatedUser");
+        authenticatedUser.setRole(Role.ROLE_USER);
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(authenticatedUser, null, authenticatedUser.getAuthorities());
+        SecurityContextHolder.setContext(new SecurityContextImpl(authentication)); // Usiamo SecurityContextImpl
+
+        when(userRepository.findById(idToDelete)).thenReturn(Optional.of(userToDelete));
+
+        AccessDeniedException ex = assertThrows(AccessDeniedException.class, () -> userService.deleteUser(idToDelete));
+        assertEquals("Access Denied", ex.getMessage());
+
         verify(userRepository, never()).delete(any(User.class));
     }
 }

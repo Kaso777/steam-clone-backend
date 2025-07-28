@@ -8,6 +8,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager; // Importa AuthenticationManager
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider; // Importa DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration; // Importa AuthenticationConfiguration
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity; // NUOVO: Import per abilitare la sicurezza a livello di metodo
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -19,7 +20,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import itsprodigi.matteocasini.steam_clone_backend.service.security.CustomAuthExceptionHandler;
 
 
-
 /**
  * Classe di configurazione per la sicurezza dell'applicazione.
  * Qui definiamo i Bean relativi a Spring Security, come il PasswordEncoder
@@ -27,6 +27,7 @@ import itsprodigi.matteocasini.steam_clone_backend.service.security.CustomAuthEx
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity // NUOVO: Abilita la sicurezza a livello di metodo (es. @PreAuthorize)
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter; // Inietta il nostro filtro JWT
@@ -107,9 +108,9 @@ public class SecurityConfig {
                         // Endpoint accessibili senza autenticazione (es. /api/auth/register, /api/auth/login)
                         .requestMatchers("/api/auth/**").permitAll()
 
-                        // NUOVA REGOLA: Endpoint DELETE per gli utenti, accessibile SOLO agli ADMIN
-                        // Questa regola DEVE venire prima di .requestMatchers("/api/**").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("ADMIN")
+                        // MODIFICATO: Le richieste DELETE per gli utenti ora richiedono solo autenticazione.
+                        // La logica specifica (admin O proprio utente) sarà gestita da @PreAuthorize nel servizio.
+                        .requestMatchers(HttpMethod.DELETE, "/api/users/**").authenticated()
 
                         // Endpoint GET per recuperare TUTTI gli utenti, accessibile SOLO agli ADMIN
                         .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
