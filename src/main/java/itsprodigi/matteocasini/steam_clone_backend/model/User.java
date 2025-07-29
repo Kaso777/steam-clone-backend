@@ -1,15 +1,14 @@
 package itsprodigi.matteocasini.steam_clone_backend.model;
 
+import itsprodigi.matteocasini.steam_clone_backend.enums.Role;
 import jakarta.persistence.*;
-import org.hibernate.annotations.UuidGenerator;
-import java.util.*;
 
-// Import di Spring Security
+import org.hibernate.annotations.UuidGenerator;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import itsprodigi.matteocasini.steam_clone_backend.enums.Role;
+import java.util.*;
 
 @Entity
 @Table(name = "users")
@@ -30,11 +29,9 @@ public class User implements UserDetails {
     @Column(name = "password", nullable = false, length = 255)
     private String password;
 
-    // --- MODIFICATO QUI ---
-    @Enumerated(EnumType.STRING) // Indica a JPA di salvare l'enum come stringa nel DB (es. "ROLE_USER")
+    @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 20)
-    private Role role; // <-- CAMBIATO DA String A Role
-    // ----------------------
+    private Role role;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private UserProfile userProfile;
@@ -44,16 +41,15 @@ public class User implements UserDetails {
 
     // Costruttori
     public User() {
+        // Default constructor for JPA
     }
 
-    // --- MODIFICATO QUI ---
-    public User(String username, String email, String password, Role role) { // <-- TIPO DI 'role' CAMBIATO
+    public User(String username, String email, String password, Role role) {
         this.username = username;
         this.email = email;
         this.password = password;
         this.role = role;
     }
-    // ----------------------
 
     // Getter
     public UUID getId() {
@@ -68,15 +64,14 @@ public class User implements UserDetails {
         return email;
     }
 
+    @Override
     public String getPassword() {
         return password;
     }
 
-    // --- MODIFICATO QUI ---
-    public Role getRole() { // <-- TIPO DI RITORNO CAMBIATO
+    public Role getRole() {
         return role;
     }
-    // ----------------------
 
     public UserProfile getUserProfile() {
         return userProfile;
@@ -103,11 +98,9 @@ public class User implements UserDetails {
         this.password = password;
     }
 
-    // --- MODIFICATO QUI ---
-    public void setRole(Role role) { // <-- TIPO DI PARAMETRO CAMBIATO
+    public void setRole(Role role) {
         this.role = role;
     }
-    // ----------------------
 
     public void setUserProfile(UserProfile userProfile) {
         this.userProfile = userProfile;
@@ -116,6 +109,11 @@ public class User implements UserDetails {
         }
     }
 
+    public void setUserGames(Set<UserGame> userGames) {
+        this.userGames = userGames;
+    }
+
+    // Metodi helper per relazioni
     public void addUserGame(UserGame userGame) {
         userGames.add(userGame);
         userGame.setUser(this);
@@ -126,20 +124,7 @@ public class User implements UserDetails {
         userGame.setUser(null);
     }
 
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", username='" + username + '\'' +
-                ", email='" + email + '\'' +
-                ", role='" + role + '\'' + // Qui verrà stampato il nome dell'enum (es. ROLE_USER)
-                '}';
-    }
-
-    // **********************************************
-    // METODI IMPLEMENTATI DALL'INTERFACCIA UserDetails
-    // **********************************************
-
+    // UserDetails interface implementation
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(this.role.name()));
@@ -165,6 +150,26 @@ public class User implements UserDetails {
         return true;
     }
 
-    
+    // equals, hashCode e toString
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User user)) return false;
+        return id != null && id.equals(user.id);
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+               "id=" + id +
+               ", username='" + username + '\'' +
+               ", email='" + email + '\'' +
+               ", role=" + role +
+               '}';
+    }
 }

@@ -20,11 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import itsprodigi.matteocasini.steam_clone_backend.service.security.CustomAuthExceptionHandler;
 
 
-/**
- * Classe di configurazione per la sicurezza dell'applicazione.
- * Qui definiamo i Bean relativi a Spring Security, come il PasswordEncoder
- * e le regole di autorizzazione per gli endpoint HTTP, integrando l'autenticazione JWT.
- */
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity // NUOVO: Abilita la sicurezza a livello di metodo (es. @PreAuthorize)

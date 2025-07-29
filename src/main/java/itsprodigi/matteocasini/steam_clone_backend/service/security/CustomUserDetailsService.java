@@ -1,39 +1,40 @@
 package itsprodigi.matteocasini.steam_clone_backend.service.security;
 
-import itsprodigi.matteocasini.steam_clone_backend.repository.UserRepository; // Importa il tuo UserRepository
+import itsprodigi.matteocasini.steam_clone_backend.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 /**
- * Servizio personalizzato per caricare i dettagli dell'utente.
- * Implementa l'interfaccia UserDetailsService di Spring Security,
- * permettendo al framework di autenticazione di recuperare gli utenti dal database.
+ * Servizio che implementa UserDetailsService per Spring Security.
+ * Utilizzato per caricare i dettagli dell'utente a partire dallo username.
  */
-@Service // Indica che questa è una classe di servizio gestita da Spring.
+@Service
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final UserRepository userRepository; // Il tuo repository per accedere ai dati utente.
+    private final UserRepository userRepository;
 
-    // Costruttore per l'iniezione della dipendenza di UserRepository.
+    /**
+     * Costruttore con iniezione di dipendenza.
+     * @param userRepository Repository degli utenti.
+     */
     public CustomUserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
     /**
-     * Carica i dettagli dell'utente dato il suo username.
-     * Questo metodo viene chiamato da Spring Security durante il processo di autenticazione.
+     * Carica un utente dal database dato lo username.
+     * Utilizzato da Spring Security durante il login.
      *
-     * @param username Il nome utente dell'utente da caricare.
-     * @return Un oggetto UserDetails (la tua entità User) contenente i dettagli dell'utente.
-     * @throws UsernameNotFoundException Se l'utente non viene trovato nel database.
+     * @param username Lo username dell'utente.
+     * @return I dettagli dell'utente (implementazione di UserDetails).
+     * @throws UsernameNotFoundException Se l'utente non esiste.
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // Cerca l'utente nel database tramite il suo username.
-        // Utilizziamo un orElseThrow per lanciare un'eccezione specifica se l'utente non esiste.
-        return userRepository.findByUsername(username)
+        return userRepository
+                .findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
     }
 }

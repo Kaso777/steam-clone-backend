@@ -1,12 +1,11 @@
 package itsprodigi.matteocasini.steam_clone_backend.dto.auth;
 
-// Import per le validazioni (se vuoi aggiungerle, altrimenti puoi ometterle per ora)
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 /**
- * DTO (Data Transfer Object) per le richieste di login.
- * Contiene lo username e la password forniti dall'utente.
+ * DTO per la richiesta di login.
+ * Contiene username e password forniti dall'utente.
  */
 public class LoginRequest {
 
@@ -18,8 +17,8 @@ public class LoginRequest {
     @Size(min = 6, message = "Password must be at least 6 characters long")
     private String password;
 
-    // Costruttore di default (richiesto da Spring per la deserializzazione JSON)
     public LoginRequest() {
+        // Costruttore vuoto richiesto da Spring per la deserializzazione JSON
     }
 
     public LoginRequest(String username, String password) {
@@ -27,18 +26,17 @@ public class LoginRequest {
         this.password = password;
     }
 
-    // Getter
+    // Getter e Setter
     public String getUsername() {
         return username;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    // Setter
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
     }
 
     public void setPassword(String password) {

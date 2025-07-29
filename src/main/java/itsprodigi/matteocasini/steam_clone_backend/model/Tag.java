@@ -2,6 +2,7 @@ package itsprodigi.matteocasini.steam_clone_backend.model;
 
 import jakarta.persistence.*;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -9,17 +10,14 @@ import java.util.Set;
 public class Tag {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // ID auto-incrementante
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "name", unique = true, nullable = false, length = 50)
-    private String name; // Es. "Multiplayer", "Single-Player", "Indie", "Fantasy"
+    private String name;
 
-    // Relazione ManyToMany con Game
-    // Questo è il lato non proprietario della relazione (usa mappedBy)
-    // Significa che la tabella di join è definita sull'altro lato (Game)
-    @ManyToMany(mappedBy = "tags", fetch = FetchType.LAZY) // Usa LAZY per evitare il caricamento di tutti i giochi quando si carica un tag
-    private Set<Game> games = new HashSet<>(); // Inizializza per evitare NullPointer
+    @ManyToMany(mappedBy = "tags", fetch = FetchType.LAZY)
+    private Set<Game> games = new HashSet<>();
 
     // Costruttori
     public Tag() {}
@@ -28,7 +26,7 @@ public class Tag {
         this.name = name;
     }
 
-    // Getter e Setter per tutti i campi
+    // Getter e Setter
     public Long getId() {
         return id;
     }
@@ -53,18 +51,26 @@ public class Tag {
         this.games = games;
     }
 
-    // È buona pratica implementare equals() e hashCode() per entità in Set
-    // Puoi generarle automaticamente con l'IDE, basandoti sull'ID o su un campo unico come 'name'
+    // equals e hashCode basati su 'name' per garantire l’unicità logica
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof Tag)) return false;
         Tag tag = (Tag) o;
-        return name != null && name.equals(tag.name); // Usa 'name' se vuoi unicità logica
+        return name != null && name.equals(tag.name);
     }
 
     @Override
     public int hashCode() {
-        return name != null ? name.hashCode() : 0;
+        return Objects.hash(name);
+    }
+
+    // toString utile per il debug
+    @Override
+    public String toString() {
+        return "Tag{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                '}';
     }
 }

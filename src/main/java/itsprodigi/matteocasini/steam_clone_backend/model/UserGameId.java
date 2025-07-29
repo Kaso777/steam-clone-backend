@@ -1,37 +1,28 @@
-//Questa classe rappresenta una chiave primaria composta per l'entità UserGame.
-// È utilizzata per identificare univocamente una relazione tra un utente e un gioco.
-// Per semplificare è una tabella di join tra User e Game.
-
 package itsprodigi.matteocasini.steam_clone_backend.model;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable; // Indica che la classe è incorporabile in altre entità
-import java.io.Serializable;          // Necessario per le chiavi primarie composte
-import java.util.Objects;             // Per implementare equals() e hashCode()
-import java.util.UUID;                // Per gli UUID di User e Game
+import jakarta.persistence.Embeddable;
 
-@Embeddable // Indica che questa classe può essere usata come parte di una chiave primaria in un'altra entità
+import java.io.Serializable;
+import java.util.Objects;
+import java.util.UUID;
+
+@Embeddable
 public class UserGameId implements Serializable {
 
     @Column(name = "user_uuid", columnDefinition = "UUID")
-    // UUID dell'utente come parte della chiave composta
     private UUID userUuid;
 
     @Column(name = "game_uuid", columnDefinition = "UUID")
-    // UUID del gioco come parte della chiave composta
     private UUID gameUuid;
 
-    // Costruttore senza argomenti (richiesto da JPA)
-    public UserGameId() {
-    }
+    public UserGameId() {}
 
-    // Costruttore con argomenti
     public UserGameId(UUID userUuid, UUID gameUuid) {
         this.userUuid = userUuid;
         this.gameUuid = gameUuid;
     }
 
-    // Getter e Setter
     public UUID getUserUuid() {
         return userUuid;
     }
@@ -48,13 +39,10 @@ public class UserGameId implements Serializable {
         this.gameUuid = gameUuid;
     }
 
-    // Metodi equals() e hashCode() sono FONDAMENTALI per le chiavi primarie composte.
-    // Garantiscono che due oggetti UserGameId siano considerati uguali se i loro UUID corrispondenti sono uguali.
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        UserGameId that = (UserGameId) o;
+        if (!(o instanceof UserGameId that)) return false;
         return Objects.equals(userUuid, that.userUuid) &&
                Objects.equals(gameUuid, that.gameUuid);
     }
@@ -63,4 +51,12 @@ public class UserGameId implements Serializable {
     public int hashCode() {
         return Objects.hash(userUuid, gameUuid);
     }
-} 
+
+    @Override
+    public String toString() {
+        return "UserGameId{" +
+                "userUuid=" + userUuid +
+                ", gameUuid=" + gameUuid +
+                '}';
+    }
+}
