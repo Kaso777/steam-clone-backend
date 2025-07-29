@@ -75,29 +75,22 @@ if (path.startsWith("/api/auth")) {
 
         // 5. Se lo username è presente e l'utente non è già autenticato nel SecurityContext.
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            // Carica i dettagli dell'utente usando il nostro CustomUserDetailsService.
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+    UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-            // 6. Valida il token JWT.
-            if (jwtUtil.validateToken(jwt, userDetails)) {
-                System.out.println("Authenticated user: " + userDetails.getUsername());
-System.out.println("Authorities: " + userDetails.getAuthorities());
+    if (jwtUtil.validateToken(jwt, userDetails)) {
+        System.out.println("Authenticated user: " + userDetails.getUsername());
+        System.out.println("Authorities: " + userDetails.getAuthorities());
 
-                // Se il token è valido, crea un oggetto di autenticazione.
-                // UsernamePasswordAuthenticationToken è usato per rappresentare l'utente autenticato.
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null, // Le credenziali (password) non sono necessarie qui dopo l'autenticazione via token.
-                        userDetails.getAuthorities() // Le autorità (ruoli) dell'utente.
-                );
-                // Imposta i dettagli della richiesta (indirizzo IP, session ID, ecc.) per l'autenticazione.
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
+        );
+        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authToken);
+    }
+}
 
-                // 7. Imposta l'oggetto di autenticazione nel SecurityContext di Spring.
-                // Questo indica a Spring Security che l'utente è autenticato per questa richiesta.
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
-        }
         // 8. Passa la richiesta al prossimo filtro nella catena.
         filterChain.doFilter(request, response);
     }
