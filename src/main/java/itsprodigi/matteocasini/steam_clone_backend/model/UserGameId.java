@@ -16,7 +16,8 @@ public class UserGameId implements Serializable {
     @Column(name = "game_uuid", columnDefinition = "UUID")
     private UUID gameUuid;
 
-    public UserGameId() {}
+    public UserGameId() {
+    }
 
     public UserGameId(UUID userUuid, UUID gameUuid) {
         this.userUuid = userUuid;
@@ -41,10 +42,12 @@ public class UserGameId implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof UserGameId that)) return false;
+        if (this == o)
+            return true;
+        if (!(o instanceof UserGameId that))
+            return false;
         return Objects.equals(userUuid, that.userUuid) &&
-               Objects.equals(gameUuid, that.gameUuid);
+                Objects.equals(gameUuid, that.gameUuid);
     }
 
     @Override

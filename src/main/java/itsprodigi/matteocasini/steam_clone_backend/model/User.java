@@ -2,7 +2,6 @@ package itsprodigi.matteocasini.steam_clone_backend.model;
 
 import itsprodigi.matteocasini.steam_clone_backend.enums.Role;
 import jakarta.persistence.*;
-
 import org.hibernate.annotations.UuidGenerator;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -41,7 +40,6 @@ public class User implements UserDetails {
 
     // Costruttori
     public User() {
-        // Default constructor for JPA
     }
 
     public User(String username, String email, String password, Role role) {
@@ -51,11 +49,12 @@ public class User implements UserDetails {
         this.role = role;
     }
 
-    // Getter
+    // Getters
     public UUID getId() {
         return id;
     }
 
+    @Override
     public String getUsername() {
         return username;
     }
@@ -81,7 +80,7 @@ public class User implements UserDetails {
         return userGames;
     }
 
-    // Setter
+    // Setters
     public void setId(UUID id) {
         this.id = id;
     }
@@ -113,7 +112,7 @@ public class User implements UserDetails {
         this.userGames = userGames;
     }
 
-    // Metodi helper per relazioni
+    // Relazioni helper
     public void addUserGame(UserGame userGame) {
         userGames.add(userGame);
         userGame.setUser(this);
@@ -124,10 +123,10 @@ public class User implements UserDetails {
         userGame.setUser(null);
     }
 
-    // UserDetails interface implementation
+    // Spring Security - UserDetails
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(this.role.name()));
+        return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
     @Override
@@ -150,11 +149,13 @@ public class User implements UserDetails {
         return true;
     }
 
-    // equals, hashCode e toString
+    // equals e hashCode (basati su ID)
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof User user)) return false;
+        if (this == o)
+            return true;
+        if (!(o instanceof User user))
+            return false;
         return id != null && id.equals(user.id);
     }
 
@@ -163,13 +164,15 @@ public class User implements UserDetails {
         return Objects.hash(id);
     }
 
+    // toString limitato (evita userProfile/userGames per evitare loop o output
+    // troppo grandi)
     @Override
     public String toString() {
         return "User{" +
-               "id=" + id +
-               ", username='" + username + '\'' +
-               ", email='" + email + '\'' +
-               ", role=" + role +
-               '}';
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", role=" + role +
+                '}';
     }
 }

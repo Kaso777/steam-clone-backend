@@ -15,10 +15,6 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
-    /**
-     * Costruttore con iniezione di dipendenza.
-     * @param userRepository Repository degli utenti.
-     */
     public CustomUserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
@@ -27,14 +23,15 @@ public class CustomUserDetailsService implements UserDetailsService {
      * Carica un utente dal database dato lo username.
      * Utilizzato da Spring Security durante il login.
      *
-     * @param username Lo username dell'utente.
-     * @return I dettagli dell'utente (implementazione di UserDetails).
-     * @throws UsernameNotFoundException Se l'utente non esiste.
+     * @param username lo username dell'utente
+     * @return i dettagli dell'utente (implementazione di UserDetails)
+     * @throws UsernameNotFoundException se l'utente non esiste
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository
                 .findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
+                .orElseThrow(() ->
+                        new UsernameNotFoundException("User not found with username: " + username));
     }
 }

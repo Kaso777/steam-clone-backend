@@ -1,8 +1,7 @@
 package itsprodigi.matteocasini.steam_clone_backend.filter;
 
-
-import itsprodigi.matteocasini.steam_clone_backend.service.security.CustomUserDetailsService; // Il nostro UserDetailsService
-import itsprodigi.matteocasini.steam_clone_backend.service.security.JwtUtil; // Il nostro JwtUtil
+import itsprodigi.matteocasini.steam_clone_backend.service.security.CustomUserDetailsService;
+import itsprodigi.matteocasini.steam_clone_backend.service.security.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,84 +13,63 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.lang.NonNull;
 
 import java.io.IOException;
 
 /**
- * Filtro di autenticazione JWT personalizzato.
- * Intercetta ogni richiesta HTTP per estrarre, validare e autenticare i token JWT.
- * Estende OncePerRequestFilter per garantire che il filtro venga eseguito una sola volta per richiesta.
+ * Filtro di autenticazione JWT.
+ * Intercetta ogni richiesta HTTP per estrarre, validare e autenticare il token JWT.
  */
-@Component // Indica che questa è una classe componente gestita da Spring.
+@Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userDetailsService;
 
-    @Autowired // Costruttore per l'iniezione delle dipendenze.
+    @Autowired
     public JwtAuthFilter(JwtUtil jwtUtil, CustomUserDetailsService userDetailsService) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
     }
 
-    /**
-     * Implementazione del metodo doFilterInternal che viene eseguito per ogni richiesta.
-     * Estrae il token JWT dall'header, lo valida e imposta l'autenticazione nel SecurityContext.
-     * @param request La richiesta HTTP.
-     * @param response La risposta HTTP.
-     * @param filterChain La catena di filtri.
-     * @throws ServletException Se si verifica un errore di servlet.
-     * @throws IOException Se si verifica un errore di I/O.
-     */
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-                                        String path = request.getServletPath();
-if (path.startsWith("/api/auth")) {
-    filterChain.doFilter(request, response);
-    return;
-}
-
-
-        // 1. Estrae l'header di autorizzazione.
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String username;
-
-        // 2. Controlla se l'header è presente e inizia con "Bearer ".
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            // Se non c'è un token JWT valido, passa la richiesta al prossimo filtro.
+        String path = request.getServletPath();
+        if (path.startsWith("/api/auth")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 3. Estrae il token JWT (rimuovendo "Bearer ").
-        jwt = authHeader.substring(7);
+        final String authHeader = request.getHeader("Authorization");
+        final String jwt;
+        final String username;
 
-        // 4. Estrae lo username dal token.
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        jwt = authHeader.substring(7);
         username = jwtUtil.extractUsername(jwt);
 
-        // 5. Se lo username è presente e l'utente non è già autenticato nel SecurityContext.
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-    UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-    if (jwtUtil.validateToken(jwt, userDetails)) {
-        System.out.println("Authenticated user: " + userDetails.getUsername());
-        System.out.println("Authorities: " + userDetails.getAuthorities());
+            if (jwtUtil.validateToken(jwt, userDetails)) {
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            }
+        }
 
-        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                userDetails,
-                null,
-                userDetails.getAuthorities()
-        );
-        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-        SecurityContextHolder.getContext().setAuthentication(authToken);
-    }
-}
-
-        // 8. Passa la richiesta al prossimo filtro nella catena.
         filterChain.doFilter(request, response);
     }
 }

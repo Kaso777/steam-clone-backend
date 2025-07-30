@@ -17,8 +17,8 @@ public class CustomAuthExceptionHandler implements AuthenticationEntryPoint, Acc
     // Gestisce 401 Unauthorized
     @Override
     public void commence(HttpServletRequest request,
-                         HttpServletResponse response,
-                         AuthenticationException authException) throws IOException, ServletException {
+            HttpServletResponse response,
+            AuthenticationException authException) throws IOException, ServletException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
         response.setContentType("application/json");
         response.getWriter().write("{\"error\": \"Autenticazione richiesta. Token assente o non valido.\"}");
@@ -27,8 +27,8 @@ public class CustomAuthExceptionHandler implements AuthenticationEntryPoint, Acc
     // Gestisce 403 Forbidden
     @Override
     public void handle(HttpServletRequest request,
-                       HttpServletResponse response,
-                       AccessDeniedException accessDeniedException) throws IOException, ServletException {
+            HttpServletResponse response,
+            AccessDeniedException accessDeniedException) throws IOException, ServletException {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN); // 403
         response.setContentType("application/json");
         response.getWriter().write("{\"error\": \"Accesso negato. Permessi insufficienti.\"}");
