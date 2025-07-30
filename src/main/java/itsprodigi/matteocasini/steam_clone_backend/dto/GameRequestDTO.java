@@ -1,19 +1,15 @@
 package itsprodigi.matteocasini.steam_clone_backend.dto;
 
-import jakarta.validation.constraints.DecimalMin;    // Per validare valori minimi decimali
-import jakarta.validation.constraints.NotBlank;     // Per campi non vuoti o solo spazi
-import jakarta.validation.constraints.NotNull;      // Per campi non nulli
-import jakarta.validation.constraints.PastOrPresent; // Per date che non sono nel futuro
-import jakarta.validation.constraints.Size;         // Per la lunghezza delle stringhe
-import java.math.BigDecimal;    // Per il prezzo
-import java.time.LocalDate;     // Per la data
-import java.util.List;          // Per la lista di tag
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
 
-/**
- * Data Transfer Object (DTO) per le richieste in ingresso (input) relative a Game.
- * Questo DTO è utilizzato quando un client invia dati al server per creare o aggiornare un gioco.
- * Contiene tutti i campi necessari per definire un gioco, inclusa la sua associazione con i tag.
- */
+
 public class GameRequestDTO {
 
     @NotBlank(message = "Il titolo non può essere vuoto o composto solo da spazi.")
@@ -37,16 +33,19 @@ public class GameRequestDTO {
     private String publisher;
 
     // Nuovo campo: lista dei nomi dei tag associati al gioco.
-    // Non è @NotNull o @NotBlank sulla lista stessa per permettere giochi senza tag,
-    // ma i singoli nomi all'interno della lista possono essere validati nel servizio.
+    // Non è @NotNull o @NotBlank sulla lista stessa per permettere giochi senza
+    // tag,
+    // ma i singoli nomi all'interno della lista possono essere validati nel
+    // servizio.
     private List<String> tagNames;
 
     // Costruttore senza argomenti (necessario per la deserializzazione JSON)
     public GameRequestDTO() {
     }
 
-    // Costruttore con tutti gli argomenti, incluso il nuovo campo 'tagNames'
-    public GameRequestDTO(String title, BigDecimal price, LocalDate releaseDate, String developer, String publisher, List<String> tagNames) {
+    // Costruttore con tutti gli argomenti
+    public GameRequestDTO(String title, BigDecimal price, LocalDate releaseDate, String developer, String publisher,
+            List<String> tagNames) {
         this.title = title;
         this.price = price;
         this.releaseDate = releaseDate;
@@ -76,7 +75,6 @@ public class GameRequestDTO {
         return publisher;
     }
 
-    // Nuovo Getter per 'tagNames'
     public List<String> getTagNames() {
         return tagNames;
     }
@@ -102,7 +100,6 @@ public class GameRequestDTO {
         this.publisher = publisher;
     }
 
-    // Nuovo Setter per 'tagNames'
     public void setTagNames(List<String> tagNames) {
         this.tagNames = tagNames;
     }
@@ -110,12 +107,12 @@ public class GameRequestDTO {
     @Override
     public String toString() {
         return "GameRequestDTO{" +
-               "title='" + title + '\'' +
-               ", price=" + price +
-               ", releaseDate=" + releaseDate +
-               ", developer='" + developer + '\'' +
-               ", publisher='" + publisher + '\'' +
-               ", tagNames=" + tagNames + // Includi il nuovo campo nel toString
-               '}';
+                "title='" + title + '\'' +
+                ", price=" + price +
+                ", releaseDate=" + releaseDate +
+                ", developer='" + developer + '\'' +
+                ", publisher='" + publisher + '\'' +
+                ", tagNames=" + tagNames + // Includi il nuovo campo nel toString
+                '}';
     }
 }

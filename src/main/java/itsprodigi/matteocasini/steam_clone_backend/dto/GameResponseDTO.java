@@ -1,21 +1,14 @@
 package itsprodigi.matteocasini.steam_clone_backend.dto;
 
-import itsprodigi.matteocasini.steam_clone_backend.model.Game; // Importa l'entità Game
-import java.math.BigDecimal; // Per il prezzo
-import java.time.LocalDate; // Per la data
-import java.util.List; // Per la lista di tag
-import java.util.UUID; // Per l'ID univoco del gioco
-import java.util.stream.Collectors; // Per mappare liste
+import itsprodigi.matteocasini.steam_clone_backend.model.Game;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
-/**
- * Data Transfer Object (DTO) per le risposte in uscita (output) relative a Game.
- * Questo DTO è utilizzato quando il server invia i dati di un gioco al client
- * (es. in risposta a un metodo GET, o dopo una POST/PUT di successo).
- *
- * Contiene i campi essenziali del gioco e include una lista dei tag associati.
- */
 public class GameResponseDTO {
-    // ID univoco del gioco. Rinominato da 'uuid' a 'id' per coerenza con l'entità Game.
+
     private UUID id;
     private String title;
     private BigDecimal price;
@@ -23,56 +16,58 @@ public class GameResponseDTO {
     private String developer;
     private String publisher;
 
-    // Nuovo campo: lista dei tag associati al gioco.
-    // Utilizza TagDTO per fornire ID e nome di ogni tag.
+    /**
+     * Lista dei tag associati al gioco.
+     * Ogni tag è rappresentato come un oggetto TagDTO (contenente id e nome).
+     */
     private List<TagDTO> tags;
 
-    // Costruttore senza argomenti (necessario per la deserializzazione JSON)
+    // --- Costruttori ---
+
+    /**
+     * Costruttore vuoto richiesto per la deserializzazione automatica.
+     */
     public GameResponseDTO() {
     }
 
     /**
-     * Costruttore che prende un'entità Game e la mappa al DTO.
-     * Questo costruttore è utile nel Service per convertire le entità
-     * recuperate dal database in un formato adatto alla risposta API.
-     * NOTA: Assicurati che la collezione di tag dell'entità Game sia caricata
-     * (non lazy-loaded) quando questo costruttore viene chiamato, altrimenti potresti
-     * incorrere in LazyInitializationException.
+     * Costruttore che converte un'entità Game in un GameResponseDTO.
+     * Usato solitamente nei Service per restituire i dati al client.
      *
-     * @param game L'entità Game da cui mappare i dati.
+     * @param game L'entità Game da cui estrarre i dati.
      */
     public GameResponseDTO(Game game) {
-        this.id = game.getId(); // Mappa l'ID dell'entità al campo 'id' del DTO
+        this.id = game.getId();
         this.title = game.getTitle();
         this.price = game.getPrice();
         this.releaseDate = game.getReleaseDate();
         this.developer = game.getDeveloper();
         this.publisher = game.getPublisher();
-        
-        // Mappa la lista di Tag dell'entità Game a una lista di TagDTO.
-        // Si assume che la collezione di tag sia già caricata.
+
+        // Conversione della lista di Tag (entità) in lista di TagDTO
         if (game.getTags() != null) {
             this.tags = game.getTags().stream()
-                                    .map(tag -> new TagDTO(tag.getId(), tag.getName())) // Mappa ogni Tag a un TagDTO
-                                    .collect(Collectors.toList());
+                    .map(tag -> new TagDTO(tag.getId(), tag.getName()))
+                    .collect(Collectors.toList());
         } else {
-            this.tags = List.of(); // Inizializza a lista vuota se non ci sono tag
+            this.tags = List.of(); // Lista vuota se non ci sono tag
         }
     }
 
     /**
-     * Costruttore con tutti i campi del DTO.
-     * Utile per creare un DTO direttamente con i valori, ad esempio nei test.
+     * Costruttore completo con tutti i campi del DTO.
+     * Utile, ad esempio, per test o creazione manuale.
      *
-     * @param id L'ID univoco del gioco.
-     * @param title Il titolo del gioco.
-     * @param price Il prezzo del gioco.
-     * @param releaseDate La data di rilascio del gioco.
-     * @param developer Lo sviluppatore del gioco.
-     * @param publisher L'editore del gioco.
-     * @param tags La lista dei tag associati al gioco.
+     * @param id          ID del gioco
+     * @param title       Titolo
+     * @param price       Prezzo
+     * @param releaseDate Data di rilascio
+     * @param developer   Sviluppatore
+     * @param publisher   Editore
+     * @param tags        Lista di tag (come TagDTO)
      */
-    public GameResponseDTO(UUID id, String title, BigDecimal price, LocalDate releaseDate, String developer, String publisher, List<TagDTO> tags) {
+    public GameResponseDTO(UUID id, String title, BigDecimal price, LocalDate releaseDate,
+            String developer, String publisher, List<TagDTO> tags) {
         this.id = id;
         this.title = title;
         this.price = price;
@@ -82,8 +77,9 @@ public class GameResponseDTO {
         this.tags = tags;
     }
 
-    // --- Getters ---
-    public UUID getId() { // Getter per 'id'
+    // --- Getter ---
+
+    public UUID getId() {
         return id;
     }
 
@@ -107,12 +103,13 @@ public class GameResponseDTO {
         return publisher;
     }
 
-    public List<TagDTO> getTags() { // Getter per 'tags'
+    public List<TagDTO> getTags() {
         return tags;
     }
 
-    // --- Setters ---
-    public void setId(UUID id) { // Setter per 'id'
+    // --- Setter ---
+
+    public void setId(UUID id) {
         this.id = id;
     }
 
@@ -136,20 +133,22 @@ public class GameResponseDTO {
         this.publisher = publisher;
     }
 
-    public void setTags(List<TagDTO> tags) { // Setter per 'tags'
+    public void setTags(List<TagDTO> tags) {
         this.tags = tags;
     }
+
+    // --- toString ---
 
     @Override
     public String toString() {
         return "GameResponseDTO{" +
-               "id=" + id +
-               ", title='" + title + '\'' +
-               ", price=" + price +
-               ", releaseDate=" + releaseDate +
-               ", developer='" + developer + '\'' +
-               ", publisher='" + publisher + '\'' +
-               ", tags=" + tags + // Includi il nuovo campo nel toString
-               '}';
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", price=" + price +
+                ", releaseDate=" + releaseDate +
+                ", developer='" + developer + '\'' +
+                ", publisher='" + publisher + '\'' +
+                ", tags=" + tags +
+                '}';
     }
 }
