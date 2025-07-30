@@ -16,20 +16,20 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue
     @UuidGenerator
-    @Column(name = "id", updatable = false, nullable = false)
+    @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @Column(name = "username", unique = true, nullable = false, length = 50)
+    @Column(nullable = false, unique = true, length = 50)
     private String username;
 
-    @Column(name = "email", unique = true, nullable = false, length = 100)
+    @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(name = "password", nullable = false, length = 255)
+    @Column(nullable = false, length = 255)
     private String password;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false, length = 20)
+    @Column(nullable = false, length = 20)
     private Role role;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -123,7 +123,7 @@ public class User implements UserDetails {
         userGame.setUser(null);
     }
 
-    // Spring Security - UserDetails
+    // Implementazione Spring Security (UserDetails)
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));
@@ -149,14 +149,12 @@ public class User implements UserDetails {
         return true;
     }
 
-    // equals e hashCode (basati su ID)
+    // equals e hashCode (solo su id)
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof User user))
-            return false;
-        return id != null && id.equals(user.id);
+        if (this == o) return true;
+        if (!(o instanceof User user)) return false;
+        return Objects.equals(id, user.id);
     }
 
     @Override
@@ -164,8 +162,7 @@ public class User implements UserDetails {
         return Objects.hash(id);
     }
 
-    // toString limitato (evita userProfile/userGames per evitare loop o output
-    // troppo grandi)
+    // toString limitato (evita cicli infiniti o dati sensibili)
     @Override
     public String toString() {
         return "User{" +

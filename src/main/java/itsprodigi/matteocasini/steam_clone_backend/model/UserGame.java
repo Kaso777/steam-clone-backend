@@ -1,6 +1,7 @@
 package itsprodigi.matteocasini.steam_clone_backend.model;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDate;
 import java.util.Objects;
 
@@ -11,12 +12,12 @@ public class UserGame {
     @EmbeddedId
     private UserGameId id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("userUuid")
     @JoinColumn(name = "user_uuid", nullable = false)
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("gameUuid")
     @JoinColumn(name = "game_uuid", nullable = false)
     private Game game;
@@ -27,7 +28,8 @@ public class UserGame {
     @Column(name = "playtime_hours", nullable = false)
     private int playtimeHours;
 
-    public UserGame() {}
+    public UserGame() {
+    }
 
     public UserGame(User user, Game game, LocalDate purchaseDate, int playtimeHours) {
         this.user = user;
@@ -51,7 +53,9 @@ public class UserGame {
 
     public void setUser(User user) {
         this.user = user;
-        if (this.id == null) this.id = new UserGameId();
+        if (this.id == null) {
+            this.id = new UserGameId();
+        }
         this.id.setUserUuid(user.getId());
     }
 
@@ -61,7 +65,9 @@ public class UserGame {
 
     public void setGame(Game game) {
         this.game = game;
-        if (this.id == null) this.id = new UserGameId();
+        if (this.id == null) {
+            this.id = new UserGameId();
+        }
         this.id.setGameUuid(game.getId());
     }
 

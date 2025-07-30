@@ -9,74 +9,82 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Interfaccia per il servizio di gestione dei giochi.
- * Definisce le operazioni disponibili per creare, leggere, aggiornare e cancellare giochi,
- * oltre a metodi di ricerca specifici basati su titolo, tag, sviluppatore o editore.
+ * Servizio per la gestione dei giochi.
+ * Definisce operazioni CRUD e ricerche specifiche per titolo, tag, sviluppatore ed editore.
  */
 public interface GameService {
 
     /**
      * Crea un nuovo gioco.
-     * @param gameRequestDTO DTO contenente i dati del gioco e i nomi dei tag associati.
-     * @return DTO del gioco creato.
+     * 
+     * @param gameRequestDTO dati per la creazione del gioco
+     * @return gioco creato
      */
     GameResponseDTO createGame(GameRequestDTO gameRequestDTO);
 
     /**
-     * Restituisce un gioco tramite il suo ID.
-     * @param id UUID del gioco da cercare.
-     * @return Optional contenente il gioco, se trovato.
-     * @throws ResourceNotFoundException se il gioco non esiste.
+     * Recupera un gioco tramite il suo ID.
+     * 
+     * @param id ID del gioco
+     * @return gioco se esistente
+     * @throws ResourceNotFoundException se non trovato
      */
     Optional<GameResponseDTO> getGameById(UUID id);
 
     /**
-     * Restituisce tutti i giochi presenti nel sistema.
-     * @return Lista di DTO dei giochi.
+     * Recupera tutti i giochi presenti.
+     * 
+     * @return lista di giochi
      */
     List<GameResponseDTO> getAllGames();
 
     /**
      * Aggiorna un gioco esistente.
-     * @param id UUID del gioco da aggiornare.
-     * @param gameRequestDTO DTO contenente i nuovi dati del gioco.
-     * @return DTO del gioco aggiornato.
-     * @throws ResourceNotFoundException se il gioco non esiste.
+     * 
+     * @param id ID del gioco
+     * @param gameRequestDTO nuovi dati
+     * @return gioco aggiornato
+     * @throws ResourceNotFoundException se non trovato
      */
     GameResponseDTO updateGame(UUID id, GameRequestDTO gameRequestDTO);
 
     /**
-     * Elimina un gioco tramite il suo ID.
-     * @param id UUID del gioco da eliminare.
-     * @throws ResourceNotFoundException se il gioco non esiste.
+     * Elimina un gioco esistente.
+     * 
+     * @param id ID del gioco
+     * @throws ResourceNotFoundException se non trovato
      */
     void deleteGame(UUID id);
 
     /**
-     * Cerca giochi il cui titolo contiene una determinata stringa (case-insensitive).
-     * @param title Titolo o parte del titolo da cercare.
-     * @return Lista di giochi corrispondenti.
+     * Cerca giochi contenenti una parte del titolo (case-insensitive).
+     * 
+     * @param title stringa da cercare
+     * @return lista di giochi trovati
      */
     List<GameResponseDTO> findGamesByTitle(String title);
 
     /**
-     * Restituisce i giochi associati a un tag specifico.
-     * @param tagName Nome del tag.
-     * @return Lista di giochi corrispondenti.
+     * Trova giochi associati a un tag.
+     * 
+     * @param tagName nome del tag
+     * @return lista di giochi
      */
     List<GameResponseDTO> findGamesByTagName(String tagName);
 
     /**
-     * Restituisce i giochi sviluppati da uno specifico sviluppatore.
-     * @param developer Nome dello sviluppatore.
-     * @return Lista di giochi corrispondenti.
+     * Trova giochi sviluppati da uno specifico sviluppatore.
+     * 
+     * @param developer nome dello sviluppatore
+     * @return lista di giochi
      */
     List<GameResponseDTO> findGamesByDeveloper(String developer);
 
     /**
-     * Restituisce i giochi pubblicati da uno specifico editore.
-     * @param publisher Nome dell'editore.
-     * @return Lista di giochi corrispondenti.
+     * Trova giochi pubblicati da un editore specifico.
+     * 
+     * @param publisher nome dell'editore
+     * @return lista di giochi
      */
     List<GameResponseDTO> findGamesByPublisher(String publisher);
 }

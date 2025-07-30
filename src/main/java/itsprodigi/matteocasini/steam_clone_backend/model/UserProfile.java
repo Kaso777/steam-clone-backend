@@ -1,20 +1,25 @@
 package itsprodigi.matteocasini.steam_clone_backend.model;
 
 import jakarta.persistence.*;
+
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Profilo associato a un utente. Contiene dati personalizzabili come nickname,
+ * avatar e bio.
+ */
 @Entity
 @Table(name = "user_profiles")
 public class UserProfile {
 
     @Id
-    @Column(name = "user_id")
+    @Column(name = "user_id", nullable = false, updatable = false)
     private UUID id;
 
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Column(name = "nickname", length = 50)
@@ -26,7 +31,9 @@ public class UserProfile {
     @Column(name = "bio", columnDefinition = "TEXT")
     private String bio;
 
-    public UserProfile() {}
+    // Costruttori
+    public UserProfile() {
+    }
 
     public UserProfile(User user, String nickname, String avatarUrl, String bio) {
         this.user = user;
@@ -35,6 +42,7 @@ public class UserProfile {
         this.bio = bio;
     }
 
+    // Getters e Setters
     public UUID getId() {
         return id;
     }
@@ -75,16 +83,28 @@ public class UserProfile {
         this.bio = bio;
     }
 
+    // equals/hashCode basati sull'ID
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof UserProfile)) return false;
-        UserProfile that = (UserProfile) o;
-        return id != null && id.equals(that.id);
+        if (this == o)
+            return true;
+        if (!(o instanceof UserProfile that))
+            return false;
+        return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    // toString leggero (opzionale)
+    @Override
+    public String toString() {
+        return "UserProfile{" +
+                "id=" + id +
+                ", nickname='" + nickname + '\'' +
+                ", avatarUrl='" + avatarUrl + '\'' +
+                '}';
     }
 }

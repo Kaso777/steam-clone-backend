@@ -1,27 +1,25 @@
 package itsprodigi.matteocasini.steam_clone_backend.service;
 
-import itsprodigi.matteocasini.steam_clone_backend.model.User;
-import itsprodigi.matteocasini.steam_clone_backend.repository.UserRepository;
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserRequestDTO;
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserResponseDTO;
+import itsprodigi.matteocasini.steam_clone_backend.enums.Role;
+import itsprodigi.matteocasini.steam_clone_backend.exception.*;
+import itsprodigi.matteocasini.steam_clone_backend.model.User;
+import itsprodigi.matteocasini.steam_clone_backend.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import itsprodigi.matteocasini.steam_clone_backend.enums.Role;
-import itsprodigi.matteocasini.steam_clone_backend.exception.*;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -37,37 +35,38 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserResponseDTO registerUser(UserRequestDTO userRequestDTO) {
-        if (userRepository.existsByUsername(userRequestDTO.getUsername())) {
-            throw new DuplicateUsernameException("Nome utente '" + userRequestDTO.getUsername() + "' già in uso.");
+    public UserResponseDTO registerUser(UserRequestDTO dto) {
+        if (userRepository.existsByUsername(dto.getUsername())) {
+            throw new DuplicateUsernameException("Username '" + dto.getUsername() + "' già in uso.");
         }
-        if (userRepository.existsByEmail(userRequestDTO.getEmail())) {
-            throw new DuplicateEmailException("Email '" + userRequestDTO.getEmail() + "' già in uso.");
+
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            throw new DuplicateEmailException("Email '" + dto.getEmail() + "' già in uso.");
         }
-        if (userRequestDTO.getPassword() == null || userRequestDTO.getPassword().length() < 6) {
-            throw new IllegalArgumentException("La password deve avere almeno 6 caratteri");
+
+        if (dto.getPassword() == null || dto.getPassword().length() < 6) {
+            throw new IllegalArgumentException("La password deve avere almeno 6 caratteri.");
         }
 
         User user = new User();
-        user.setUsername(userRequestDTO.getUsername());
-        user.setEmail(userRequestDTO.getEmail());
-        user.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
+        user.setUsername(dto.getUsername());
+        user.setEmail(dto.getEmail());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+
         try {
-            user.setRole(Role.valueOf(userRequestDTO.getRole()));
+            user.setRole(Role.valueOf(dto.getRole()));
         } catch (IllegalArgumentException e) {
-            throw new InvalidRoleException("Ruolo non valido: " + userRequestDTO.getRole() +
+            throw new InvalidRoleException("Ruolo non valido: " + dto.getRole() +
                     ". Ruoli consentiti: " + java.util.Arrays.toString(Role.values()));
         }
 
-        User savedUser = userRepository.save(user);
-        return convertToResponseDto(savedUser);
+        return convertToResponseDto(userRepository.save(user));
     }
 
     @Override
     public Optional<UserResponseDTO> getUserById(UUID id) {
-        User user = userRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Utente con ID " + id + " non trovato"));
-        return Optional.of(convertToResponseDto(user));
+        return userRepository.findById(id)
+                .map(this::convertToResponseDto);
     }
 
     @Override
@@ -79,7 +78,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserResponseDTO updateUser(UUID id, UserRequestDTO userRequestDTO) {
+    public UserResponseDTO updateUser(UUID id, UserRequestDTO dto) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) auth.getPrincipal();
 
@@ -90,74 +89,72 @@ public class UserServiceImpl implements UserService {
             throw new AccessDeniedException("Non sei autorizzato a modificare questo utente.");
         }
 
-        User userToUpdate = userRepository.findById(id)
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato con ID: " + id));
 
-        if (!isAdmin) {
-            if (!userToUpdate.getEmail().equals(userRequestDTO.getEmail())) {
-                userRepository.findByEmail(userRequestDTO.getEmail())
-                        .ifPresent(existingUser -> {
-                            if (!existingUser.getId().equals(id)) {
-                                throw new DuplicateEmailException("Email '" + userRequestDTO.getEmail() + "' già in uso.");
-                            }
-                        });
-                userToUpdate.setEmail(userRequestDTO.getEmail());
+        if (isAdmin) {
+            validateDuplicateUsername(dto.getUsername(), id);
+            validateDuplicateEmail(dto.getEmail(), id);
+
+            user.setUsername(dto.getUsername());
+            user.setEmail(dto.getEmail());
+
+            if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+                user.setPassword(passwordEncoder.encode(dto.getPassword()));
             }
 
-            if (userRequestDTO.getPassword() != null && !userRequestDTO.getPassword().isBlank()) {
-                userToUpdate.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
+            try {
+                user.setRole(Role.valueOf(dto.getRole()));
+            } catch (IllegalArgumentException e) {
+                throw new InvalidRoleException("Ruolo non valido: " + dto.getRole());
             }
 
-            return convertToResponseDto(userRepository.save(userToUpdate));
+        } else {
+            if (!user.getEmail().equals(dto.getEmail())) {
+                validateDuplicateEmail(dto.getEmail(), id);
+                user.setEmail(dto.getEmail());
+            }
+
+            if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+                user.setPassword(passwordEncoder.encode(dto.getPassword()));
+            }
         }
 
-        userRepository.findByUsername(userRequestDTO.getUsername())
-                .ifPresent(existingUser -> {
-                    if (!existingUser.getId().equals(id)) {
-                        throw new DuplicateUsernameException("Username '" + userRequestDTO.getUsername() + "' già in uso.");
-                    }
-                });
-
-        userRepository.findByEmail(userRequestDTO.getEmail())
-                .ifPresent(existingUser -> {
-                    if (!existingUser.getId().equals(id)) {
-                        throw new DuplicateEmailException("Email '" + userRequestDTO.getEmail() + "' già in uso.");
-                    }
-                });
-
-        userToUpdate.setUsername(userRequestDTO.getUsername());
-        userToUpdate.setEmail(userRequestDTO.getEmail());
-
-        if (userRequestDTO.getPassword() != null && !userRequestDTO.getPassword().isBlank()) {
-            userToUpdate.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
-        }
-
-        try {
-            userToUpdate.setRole(Role.valueOf(userRequestDTO.getRole()));
-        } catch (IllegalArgumentException e) {
-            throw new InvalidRoleException("Ruolo non valido: " + userRequestDTO.getRole());
-        }
-
-        return convertToResponseDto(userRepository.save(userToUpdate));
+        return convertToResponseDto(userRepository.save(user));
     }
 
     @Override
     @Transactional
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     public void deleteUser(UUID id) {
-        User userToDelete = userRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato con ID: " + id));
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato con ID: " + id));
 
-        userRepository.delete(userToDelete);
+        userRepository.delete(user);
+    }
+
+    private void validateDuplicateUsername(String username, UUID id) {
+        userRepository.findByUsername(username).ifPresent(existingUser -> {
+            if (!existingUser.getId().equals(id)) {
+                throw new DuplicateUsernameException("Username '" + username + "' già in uso.");
+            }
+        });
+    }
+
+    private void validateDuplicateEmail(String email, UUID id) {
+        userRepository.findByEmail(email).ifPresent(existingUser -> {
+            if (!existingUser.getId().equals(id)) {
+                throw new DuplicateEmailException("Email '" + email + "' già in uso.");
+            }
+        });
     }
 
     private UserResponseDTO convertToResponseDto(User user) {
-        UserResponseDTO dto = new UserResponseDTO();
-        dto.setId(user.getId());
-        dto.setUsername(user.getUsername());
-        dto.setEmail(user.getEmail());
-        dto.setRole(user.getRole().name());
-
-        return dto;
+        return new UserResponseDTO(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole().name()
+        );
     }
 }

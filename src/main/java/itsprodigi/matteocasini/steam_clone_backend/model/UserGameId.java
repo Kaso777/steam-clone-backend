@@ -7,13 +7,16 @@ import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Classe per la chiave primaria composta di UserGame.
+ */
 @Embeddable
 public class UserGameId implements Serializable {
 
-    @Column(name = "user_uuid", columnDefinition = "UUID")
+    @Column(name = "user_uuid", columnDefinition = "UUID", nullable = false)
     private UUID userUuid;
 
-    @Column(name = "game_uuid", columnDefinition = "UUID")
+    @Column(name = "game_uuid", columnDefinition = "UUID", nullable = false)
     private UUID gameUuid;
 
     public UserGameId() {

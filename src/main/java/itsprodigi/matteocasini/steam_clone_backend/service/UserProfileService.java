@@ -1,9 +1,8 @@
 package itsprodigi.matteocasini.steam_clone_backend.service;
 
-
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserProfileRequestDTO;
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserProfileResponseDTO;
-import java.util.Optional;
+
 import java.util.UUID;
 
 /**
@@ -16,9 +15,9 @@ public interface UserProfileService {
     /**
      * Recupera un profilo utente tramite l'ID dell'utente (che è anche l'ID del profilo).
      * @param userId L'ID dell'utente/profilo da recuperare.
-     * @return Un Optional contenente il UserProfileResponseDTO se trovato, altrimenti Optional.empty().
+     * @return Il UserProfileResponseDTO se trovato.
      */
-    Optional<UserProfileResponseDTO> getUserProfileById(UUID userId);
+    UserProfileResponseDTO getUserProfileById(UUID userId);
 
     /**
      * Crea un nuovo profilo utente o aggiorna un profilo esistente per un dato utente.

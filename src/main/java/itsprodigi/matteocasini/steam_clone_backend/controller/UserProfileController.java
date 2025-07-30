@@ -13,7 +13,8 @@ import java.util.UUID;
 
 /**
  * Controller REST dedicato alla gestione dei profili utente.
- * Separato dal controller utente principale per garantire chiarezza e separazione delle responsabilità.
+ * Separato dal controller utente principale per garantire chiarezza e
+ * separazione delle responsabilità.
  */
 @RestController
 @RequestMapping("/api/users/{userId}/profile")
@@ -32,9 +33,8 @@ public class UserProfileController {
      */
     @GetMapping
     public ResponseEntity<UserProfileResponseDTO> getUserProfile(@PathVariable UUID userId) {
-        return userProfileService.getUserProfileById(userId)
-                .map(profileDto -> new ResponseEntity<>(profileDto, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        UserProfileResponseDTO profile = userProfileService.getUserProfileById(userId);
+        return ResponseEntity.ok(profile);
     }
 
     /**
@@ -45,8 +45,9 @@ public class UserProfileController {
     public ResponseEntity<UserProfileResponseDTO> createOrUpdateUserProfile(
             @PathVariable UUID userId,
             @Valid @RequestBody UserProfileRequestDTO profileDetailsRequestDTO) {
-        UserProfileResponseDTO updatedProfile = userProfileService.createOrUpdateUserProfile(userId, profileDetailsRequestDTO);
-        return new ResponseEntity<>(updatedProfile, HttpStatus.OK);
+        UserProfileResponseDTO updatedProfile = userProfileService.createOrUpdateUserProfile(userId,
+                profileDetailsRequestDTO);
+        return ResponseEntity.ok(updatedProfile);
     }
 
     /**
@@ -56,6 +57,6 @@ public class UserProfileController {
     @DeleteMapping
     public ResponseEntity<Void> deleteUserProfile(@PathVariable UUID userId) {
         userProfileService.deleteUserProfile(userId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return ResponseEntity.noContent().build();
     }
 }

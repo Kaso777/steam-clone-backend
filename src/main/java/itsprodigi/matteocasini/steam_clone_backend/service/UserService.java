@@ -1,53 +1,54 @@
 package itsprodigi.matteocasini.steam_clone_backend.service;
 
-import itsprodigi.matteocasini.steam_clone_backend.dto.UserRequestDTO;  // Importa il DTO di richiesta
-import itsprodigi.matteocasini.steam_clone_backend.dto.UserResponseDTO; // Importa il DTO di risposta
+import itsprodigi.matteocasini.steam_clone_backend.dto.UserRequestDTO;
+import itsprodigi.matteocasini.steam_clone_backend.dto.UserResponseDTO;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Interfaccia per il servizio di gestione degli Utenti.
- * Definisce il contratto dei metodi disponibili per interagire con gli utenti,
- * garantendo il disaccoppiamento tra l'implementazione concreta e i componenti che la utilizzano.
+ * Servizio per la gestione degli utenti.
+ * Definisce le operazioni disponibili per interagire con gli utenti.
  */
 public interface UserService {
 
     /**
-     * Registra un nuovo utente nel sistema.
-     * Accetta un UserRequestDTO come input, che include username, email, password e role.
-     * @param userRequestDTO Il DTO contenente i dati di registrazione dell'utente.
-     * @return Il UserResponseDTO dell'utente appena registrato.
+     * Registra un nuovo utente.
+     *
+     * @param userRequestDTO Dati dell'utente da registrare.
+     * @return L'utente registrato.
      */
     UserResponseDTO registerUser(UserRequestDTO userRequestDTO);
 
     /**
-     * Recupera un utente tramite il suo ID.
-     * Restituisce un Optional di UserResponseDTO.
-     * @param id L'ID univoco (UUID) dell'utente da recuperare.
-     * @return Un Optional contenente il UserResponseDTO se trovato, altrimenti Optional.empty().
+     * Recupera un utente tramite ID.
+     *
+     * @param id ID dell'utente.
+     * @return L'utente, se trovato.
      */
     Optional<UserResponseDTO> getUserById(UUID id);
 
     /**
-     * Recupera tutti gli utenti registrati nel sistema.
-     * Restituisce una lista di UserResponseDTO.
-     * @return Una lista di UserResponseDTO.
+     * Recupera tutti gli utenti registrati.
+     *
+     * @return Lista di utenti.
      */
     List<UserResponseDTO> getAllUsers();
 
     /**
      * Aggiorna i dati di un utente esistente.
-     * Accetta un UserRequestDTO come input, che include i dati aggiornati dell'utente.
-     * @param id L'ID dell'utente da aggiornare.
-     * @param userRequestDTO Il DTO contenente i nuovi dati dell'utente.
-     * @return Il UserResponseDTO dell'utente aggiornato.
+     *
+     * @param id              ID dell'utente da aggiornare.
+     * @param userRequestDTO  Nuovi dati dell'utente.
+     * @return L'utente aggiornato.
      */
     UserResponseDTO updateUser(UUID id, UserRequestDTO userRequestDTO);
 
     /**
-     * Elimina un utente tramite il suo ID.
-     * @param id L'ID dell'utente da eliminare.
+     * Elimina un utente tramite ID.
+     *
+     * @param id ID dell'utente da eliminare.
      */
     void deleteUser(UUID id);
 }
