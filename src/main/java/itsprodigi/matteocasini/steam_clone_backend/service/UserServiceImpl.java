@@ -12,12 +12,13 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
+
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -26,6 +27,20 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    public User getAuthenticatedUser() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+    if (authentication == null || authentication.getName() == null) {
+        throw new UsernameNotFoundException("Nessun utente autenticato trovato nel contesto di sicurezza");
+    }
+
+    String username = authentication.getName();
+
+    return userRepository.findByUsername(username)
+            .orElseThrow(() -> new UsernameNotFoundException("Utente autenticato non trovato"));
+}
+
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
@@ -65,10 +80,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
 public UserResponseDTO getUserById(UUID id) {
+    User authenticatedUser = getAuthenticatedUser(); // recupera l'utente autenticato
+
+    // Se NON è admin e sta cercando un altro utente → 403
+    if (!authenticatedUser.getRole().equals(Role.ROLE_ADMIN) && !authenticatedUser.getId().equals(id)) {
+        throw new AccessDeniedException("Non hai i permessi per accedere a questo utente.");
+    }
+
     User user = userRepository.findById(id)
             .orElseThrow(() -> new UserNotFoundException(id));
     return convertToResponseDto(user);
 }
+
 
 
     @Override

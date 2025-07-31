@@ -3,15 +3,18 @@ package itsprodigi.matteocasini.steam_clone_backend.controller;
 import itsprodigi.matteocasini.steam_clone_backend.service.UserService;
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserRequestDTO;
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserResponseDTO;
-
+import itsprodigi.matteocasini.steam_clone_backend.exception.InvalidRoleException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import itsprodigi.matteocasini.steam_clone_backend.model.User;
+
 
 import java.util.List;
 import java.util.UUID;
+
 
 /**
  * Controller REST per la gestione degli utenti.
@@ -32,6 +35,7 @@ public class UserController {
      * Registra un nuovo utente.
      * POST /api/users/register
      */
+    @Valid
     @PostMapping("/register")
     public ResponseEntity<UserResponseDTO> registerUser(@Valid @RequestBody UserRequestDTO userRequestDTO) {
         UserResponseDTO registeredUser = userService.registerUser(userRequestDTO);
@@ -53,9 +57,16 @@ public class UserController {
      * GET /api/users/{id}
      */
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable UUID id) {
-        return ResponseEntity.ok(userService.getUserById(id));
+public ResponseEntity<UserResponseDTO> getUserById(@PathVariable UUID id) {
+    User authenticatedUser = userService.getAuthenticatedUser(); // prende l'utente loggato
+
+    if (!authenticatedUser.getRole().equals("ADMIN") && !authenticatedUser.getId().equals(id)) {
+        throw new InvalidRoleException("Non hai i permessi per visualizzare questo utente.");
     }
+
+    return ResponseEntity.ok(userService.getUserById(id));
+}
+
 
     /**
      * Aggiorna i dati di un utente esistente.

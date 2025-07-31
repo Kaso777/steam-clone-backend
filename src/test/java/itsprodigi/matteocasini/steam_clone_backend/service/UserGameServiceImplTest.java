@@ -6,7 +6,7 @@ import itsprodigi.matteocasini.steam_clone_backend.model.*;
 import itsprodigi.matteocasini.steam_clone_backend.repository.GameRepository;
 import itsprodigi.matteocasini.steam_clone_backend.repository.UserGameRepository;
 import itsprodigi.matteocasini.steam_clone_backend.repository.UserRepository;
-import itsprodigi.matteocasini.steam_clone_backend.service.UserGameServiceImpl;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;

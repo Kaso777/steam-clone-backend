@@ -81,6 +81,15 @@ public class GlobalExceptionHandler {
                                 request);
         }
 
+        @ExceptionHandler(InvalidRoleException.class)
+        public ResponseEntity<ErrorResponseDTO> handleInvalidRole(InvalidRoleException ex, WebRequest request) {
+                return buildErrorResponse(
+                                HttpStatus.FORBIDDEN,
+                                "Accesso negato",
+                                List.of(ex.getMessage()),
+                                request);
+        }
+
         @ExceptionHandler(Exception.class)
         public ResponseEntity<ErrorResponseDTO> handleGenericException(Exception ex, WebRequest request) {
                 return buildErrorResponse(

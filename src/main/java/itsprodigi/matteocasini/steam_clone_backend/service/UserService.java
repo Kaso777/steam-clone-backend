@@ -2,16 +2,24 @@ package itsprodigi.matteocasini.steam_clone_backend.service;
 
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserRequestDTO;
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserResponseDTO;
+import itsprodigi.matteocasini.steam_clone_backend.model.User;
+
 
 import java.util.List;
-import java.util.Optional;
+//import java.util.Optional;
 import java.util.UUID;
+
+
+
 
 /**
  * Servizio per la gestione degli utenti.
  * Definisce le operazioni disponibili per interagire con gli utenti.
  */
 public interface UserService {
+
+    User getAuthenticatedUser();
+
 
     /**
      * Registra un nuovo utente.

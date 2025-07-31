@@ -15,13 +15,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 import java.util.Optional;
 import java.util.UUID;
 import java.util.List;
 
-
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,14 +33,14 @@ class UserServiceImplTest {
     private UserRepository userRepository;
 
     @Mock
-    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private UserServiceImpl userService;
 
     @BeforeEach
     void setUp() {
-        // Nessun contesto Spring da pulire
+        SecurityContextHolder.clearContext(); // Pulisce eventuali contesti precedenti
     }
 
     @Test
@@ -50,11 +52,11 @@ class UserServiceImplTest {
         when(passwordEncoder.encode("secure123")).thenReturn("encodedPassword");
 
         User savedUser = new User();
-savedUser.setId(UUID.randomUUID());
-savedUser.setUsername("matteo");
-savedUser.setEmail("matteo@example.com");
-savedUser.setPassword("encodedPassword");
-savedUser.setRole(Role.ROLE_USER);
+        savedUser.setId(UUID.randomUUID());
+        savedUser.setUsername("matteo");
+        savedUser.setEmail("matteo@example.com");
+        savedUser.setPassword("encodedPassword");
+        savedUser.setRole(Role.ROLE_USER);
 
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
 
@@ -110,49 +112,71 @@ savedUser.setRole(Role.ROLE_USER);
     @Test
     void getUserById_notFound_throwsException() {
         UUID userId = UUID.randomUUID();
+
+        // Simula utente autenticato
+        User authenticatedUser = new User();
+        authenticatedUser.setId(userId); // lo stesso ID che stiamo cercando
+        authenticatedUser.setUsername("testuser");
+        authenticatedUser.setRole(Role.ROLE_ADMIN);
+
+        // Imposta il contesto di sicurezza con "testuser"
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("testuser", null)
+        );
+
+        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(authenticatedUser));
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () -> userService.getUserById(userId));
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () ->
+                userService.getUserById(userId)
+        );
+
         assertEquals("Utente non trovato con ID: " + userId, ex.getMessage());
 
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     void getUserById_success_returnsUser() {
         UUID id = UUID.randomUUID();
-User user = new User();
-user.setId(id);
-user.setUsername("testuser");
-user.setEmail("test@example.com");
-user.setPassword("pass");
-user.setRole(Role.ROLE_USER);
 
+        User user = new User();
+        user.setId(id);
+        user.setUsername("testuser");
+        user.setEmail("test@example.com");
+        user.setPassword("pass");
+        user.setRole(Role.ROLE_USER);
 
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("testuser", null)
+        );
+
+        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
         when(userRepository.findById(id)).thenReturn(Optional.of(user));
 
         UserResponseDTO result = userService.getUserById(id);
 
-assertNotNull(result);
-assertEquals("testuser", result.getUsername());
+        assertNotNull(result);
+        assertEquals("testuser", result.getUsername());
 
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     void getAllUsers_returnsList() {
         User user1 = new User();
-user1.setId(UUID.randomUUID());
-user1.setUsername("user1");
-user1.setEmail("user1@example.com");
-user1.setPassword("pass1");
-user1.setRole(Role.ROLE_USER);
+        user1.setId(UUID.randomUUID());
+        user1.setUsername("user1");
+        user1.setEmail("user1@example.com");
+        user1.setPassword("pass1");
+        user1.setRole(Role.ROLE_USER);
 
-User user2 = new User();
-user2.setId(UUID.randomUUID());
-user2.setUsername("user2");
-user2.setEmail("user2@example.com");
-user2.setPassword("pass2");
-user2.setRole(Role.ROLE_ADMIN);
-
+        User user2 = new User();
+        user2.setId(UUID.randomUUID());
+        user2.setUsername("user2");
+        user2.setEmail("user2@example.com");
+        user2.setPassword("pass2");
+        user2.setRole(Role.ROLE_ADMIN);
 
         when(userRepository.findAll()).thenReturn(List.of(user1, user2));
 

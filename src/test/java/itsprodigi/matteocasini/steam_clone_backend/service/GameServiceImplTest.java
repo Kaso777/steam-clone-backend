@@ -1,9 +1,7 @@
 package itsprodigi.matteocasini.steam_clone_backend.service;
 
-import itsprodigi.matteocasini.steam_clone_backend.dto.GameRequestDTO;
 import itsprodigi.matteocasini.steam_clone_backend.dto.GameResponseDTO;
 import itsprodigi.matteocasini.steam_clone_backend.model.Game;
-import itsprodigi.matteocasini.steam_clone_backend.model.Tag;
 import itsprodigi.matteocasini.steam_clone_backend.repository.GameRepository;
 import itsprodigi.matteocasini.steam_clone_backend.repository.TagRepository;
 import itsprodigi.matteocasini.steam_clone_backend.exception.ResourceNotFoundException;
