@@ -64,10 +64,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<UserResponseDTO> getUserById(UUID id) {
-        return userRepository.findById(id)
-                .map(this::convertToResponseDto);
-    }
+public UserResponseDTO getUserById(UUID id) {
+    User user = userRepository.findById(id)
+            .orElseThrow(() -> new UserNotFoundException(id));
+    return convertToResponseDto(user);
+}
+
 
     @Override
     public List<UserResponseDTO> getAllUsers() {

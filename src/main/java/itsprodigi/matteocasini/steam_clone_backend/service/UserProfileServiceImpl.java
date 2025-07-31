@@ -31,11 +31,17 @@ public class UserProfileServiceImpl implements UserProfileService {
     }
 
     @Override
-    public UserProfileResponseDTO getUserProfileById(UUID userId) {
-        UserProfile profile = userProfileRepository.findById(userId)
-                .orElseThrow(() -> new UserProfileNotFoundException(userId));
-        return convertToResponseDto(profile);
-    }
+public UserProfileResponseDTO getUserProfileById(UUID userId) {
+    UserProfile profile = userProfileRepository.findById(userId)
+            .orElseThrow(() -> new UserProfileNotFoundException(userId));
+
+    return new UserProfileResponseDTO(
+            profile.getId(),
+            profile.getNickname(),
+            profile.getAvatarUrl(),
+            profile.getBio()
+    );
+}
 
     @Override
     @Transactional

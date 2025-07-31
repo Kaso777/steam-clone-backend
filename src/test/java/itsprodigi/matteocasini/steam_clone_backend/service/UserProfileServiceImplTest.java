@@ -2,6 +2,7 @@ package itsprodigi.matteocasini.steam_clone_backend.service;
 
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserProfileRequestDTO;
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserProfileResponseDTO;
+import itsprodigi.matteocasini.steam_clone_backend.exception.UserProfileNotFoundException;
 import itsprodigi.matteocasini.steam_clone_backend.model.User;
 import itsprodigi.matteocasini.steam_clone_backend.model.UserProfile;
 import itsprodigi.matteocasini.steam_clone_backend.repository.UserProfileRepository;
@@ -14,6 +15,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class UserProfileServiceImplTest {
@@ -33,29 +35,29 @@ class UserProfileServiceImplTest {
     }
 
     @Test
-    void getUserProfileById_returnsProfile() {
-        UUID userId = UUID.randomUUID();
+void getUserProfileById_returnsProfile() {
+    UUID userId = UUID.randomUUID();
+    User user = new User();
+    user.setId(userId);
+    user.setUsername("matteo");
 
-        User user = new User();
-        user.setId(userId);
-        user.setUsername("matteo");
+    UserProfile profile = new UserProfile();
+    profile.setId(userId);
+    profile.setUser(user);
+    profile.setNickname("Matty");
+    profile.setAvatarUrl("http://img.com/avatar.png");
+    profile.setBio("bio test");
 
-        UserProfile profile = new UserProfile();
-        profile.setId(userId);
-        profile.setUser(user);
-        profile.setNickname("Matty");
-        profile.setAvatarUrl("http://img.com/avatar.png");
-        profile.setBio("bio test");
+    when(userProfileRepository.findById(userId)).thenReturn(Optional.of(profile));
 
-        when(userProfileRepository.findById(userId)).thenReturn(Optional.of(profile));
+    UserProfileResponseDTO result = userProfileService.getUserProfileById(userId);
 
-        Optional<UserProfileResponseDTO> result = userProfileService.getUserProfileById(userId);
+    assertNotNull(result);
+    assertEquals("Matty", result.getNickname());
+    assertEquals("http://img.com/avatar.png", result.getAvatarUrl());
+    assertEquals("bio test", result.getBio());
+}
 
-        assertTrue(result.isPresent());
-        assertEquals("Matty", result.get().getNickname());
-        assertEquals("http://img.com/avatar.png", result.get().getAvatarUrl());
-        assertEquals("bio test", result.get().getBio());
-    }
 
     @Test
     void createOrUpdateUserProfile_createsNewProfile() {
@@ -99,15 +101,18 @@ class UserProfileServiceImplTest {
     }
 
     @Test
-    void getUserProfileById_notFound_returnsEmptyOptional() {
-        UUID userId = UUID.randomUUID();
+void getUserProfileById_notFound_throwsException() {
+    UUID userId = UUID.randomUUID();
+    when(userProfileRepository.findById(userId)).thenReturn(Optional.empty());
 
-        when(userProfileRepository.findById(userId)).thenReturn(Optional.empty());
+    UserProfileNotFoundException ex = assertThrows(
+        UserProfileNotFoundException.class,
+        () -> userProfileService.getUserProfileById(userId)
+    );
 
-        Optional<UserProfileResponseDTO> result = userProfileService.getUserProfileById(userId);
+    assertEquals("Profilo utente non trovato per l'utente con ID: " + userId, ex.getMessage());
+}
 
-        assertTrue(result.isEmpty());
-    }
 
     @Test
     void deleteUserProfile_userNotFound_throwsException() {

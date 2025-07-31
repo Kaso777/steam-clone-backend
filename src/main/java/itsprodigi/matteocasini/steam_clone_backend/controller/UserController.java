@@ -54,9 +54,7 @@ public class UserController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDTO> getUserById(@PathVariable UUID id) {
-        return userService.getUserById(id)
-                .map(userDto -> new ResponseEntity<>(userDto, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        return ResponseEntity.ok(userService.getUserById(id));
     }
 
     /**
@@ -64,7 +62,8 @@ public class UserController {
      * PUT /api/users/{id}
      */
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable UUID id, @Valid @RequestBody UserRequestDTO userRequestDTO) {
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable UUID id,
+            @Valid @RequestBody UserRequestDTO userRequestDTO) {
         UserResponseDTO updatedUser = userService.updateUser(id, userRequestDTO);
         return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }

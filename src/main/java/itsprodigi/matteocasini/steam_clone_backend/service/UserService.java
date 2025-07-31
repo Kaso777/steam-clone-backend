@@ -27,7 +27,8 @@ public interface UserService {
      * @param id ID dell'utente.
      * @return L'utente, se trovato.
      */
-    Optional<UserResponseDTO> getUserById(UUID id);
+    UserResponseDTO getUserById(UUID id);
+
 
     /**
      * Recupera tutti gli utenti registrati.
