@@ -58,11 +58,11 @@ public class UserController {
      */
     @GetMapping("/{id}")
 public ResponseEntity<UserResponseDTO> getUserById(@PathVariable UUID id) {
-    User authenticatedUser = userService.getAuthenticatedUser(); // prende l'utente loggato
+    //User authenticatedUser = userService.getAuthenticatedUser(); // prende l'utente loggato
 
-    if (!authenticatedUser.getRole().equals("ADMIN") && !authenticatedUser.getId().equals(id)) {
-        throw new InvalidRoleException("Non hai i permessi per visualizzare questo utente.");
-    }
+    //if (!authenticatedUser.getRole().equals("ADMIN") && !authenticatedUser.getId().equals(id)) {
+      //  throw new InvalidRoleException("Non hai i permessi per visualizzare questo utente.");
+   // }
 
     return ResponseEntity.ok(userService.getUserById(id));
 }
@@ -89,12 +89,14 @@ public ResponseEntity<UserResponseDTO> getUserById(@PathVariable UUID id) {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    /**
-     * Fallback generico per errori non gestiti nei metodi sopra.
-     * Utile per test o fallback semplice durante lo sviluppo.
-     */
+    /*
+    
+     // Fallback generico per errori non gestiti nei metodi sopra.
+     // Utile per test o fallback semplice durante lo sviluppo.
+     
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<String> fallbackHandler(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Utente non trovato");
     }
+        */
 }

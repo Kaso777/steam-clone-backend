@@ -18,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter; // Importa UsernamePasswordAuthenticationFilter
 import itsprodigi.matteocasini.steam_clone_backend.service.security.CustomAuthExceptionHandler;
+import itsprodigi.matteocasini.steam_clone_backend.service.security.CustomAccessDeniedHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -78,6 +79,24 @@ public class SecurityConfig {
         authProvider.setPasswordEncoder(passwordEncoder()); // Il nostro PasswordEncoder
         return authProvider;
     }
+
+/* 
+    @Bean
+public SecurityFilterChain basicSecurityFilterChain(HttpSecurity http,
+                                                CustomAccessDeniedHandler accessDeniedHandler) throws Exception {
+    http
+        .csrf(csrf -> csrf.disable())
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/api/users/register", "/api/auth/**").permitAll()
+            .anyRequest().authenticated()
+        )
+        .exceptionHandling(ex -> ex
+            .accessDeniedHandler(accessDeniedHandler)
+        );
+    return http.build();
+}
+*/
+
 
     /**
      * Definisce la catena di filtri di sicurezza HTTP.

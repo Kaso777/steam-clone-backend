@@ -10,6 +10,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -83,6 +84,15 @@ public class GlobalExceptionHandler {
 
         @ExceptionHandler(InvalidRoleException.class)
         public ResponseEntity<ErrorResponseDTO> handleInvalidRole(InvalidRoleException ex, WebRequest request) {
+                return buildErrorResponse(
+                                HttpStatus.FORBIDDEN,
+                                "Accesso negato",
+                                List.of(ex.getMessage()),
+                                request);
+        }
+
+        @ExceptionHandler(AccessDeniedException.class)
+        public ResponseEntity<ErrorResponseDTO> handleAccessDenied(AccessDeniedException ex, WebRequest request) {
                 return buildErrorResponse(
                                 HttpStatus.FORBIDDEN,
                                 "Accesso negato",
