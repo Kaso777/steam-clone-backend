@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public class UserRequestDTO {
+public class UserRegistrationDTO {
 
     @NotBlank(message = "Lo username non può essere vuoto")
     @Size(min = 3, max = 50, message = "Lo username deve avere tra 3 e 50 caratteri")
@@ -22,10 +22,10 @@ public class UserRequestDTO {
     @NotBlank(message = "Il ruolo non può essere vuoto o composto solo da spazi.")
     private String role;
 
-    public UserRequestDTO() {
+    public UserRegistrationDTO() {
     }
 
-    public UserRequestDTO(String username, String email, String password, String role) {
+    public UserRegistrationDTO(String username, String email, String password, String role) {
         this.username = username;
         this.email = email;
         this.password = password;
@@ -66,7 +66,7 @@ public class UserRequestDTO {
 
     @Override
     public String toString() {
-        return "UserRequestDTO{" +
+        return "UserRegistrationDTO{" +
                 "username='" + username + '\'' +
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +

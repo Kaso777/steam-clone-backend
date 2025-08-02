@@ -1,11 +1,12 @@
 package itsprodigi.matteocasini.steam_clone_backend.service;
 
-import itsprodigi.matteocasini.steam_clone_backend.dto.UserRequestDTO;
+import itsprodigi.matteocasini.steam_clone_backend.dto.UserRegistrationDTO;
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserResponseDTO;
 import itsprodigi.matteocasini.steam_clone_backend.enums.Role;
 import itsprodigi.matteocasini.steam_clone_backend.exception.*;
 import itsprodigi.matteocasini.steam_clone_backend.model.User;
 import itsprodigi.matteocasini.steam_clone_backend.repository.UserRepository;
+import itsprodigi.matteocasini.steam_clone_backend.dto.UserUpdateDTO;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -50,7 +51,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserResponseDTO registerUser(UserRequestDTO dto) {
+    public UserResponseDTO registerUser(UserRegistrationDTO dto) {
         if (userRepository.existsByUsername(dto.getUsername())) {
             throw new DuplicateUsernameException("Username '" + dto.getUsername() + "' già in uso.");
         }
@@ -108,52 +109,62 @@ public UserResponseDTO getUserById(UUID id) {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    @Transactional
-    public UserResponseDTO updateUser(UUID id, UserRequestDTO dto) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = (User) auth.getPrincipal();
+   @Override
+@Transactional
+public UserResponseDTO updateUser(UUID id, UserUpdateDTO dto) {
+    User currentUser = getAuthenticatedUser(); // usa il metodo già presente nel tuo UserServiceImpl
 
-        boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
-        boolean isSelf = currentUser.getId().equals(id);
 
-        if (!isAdmin && !isSelf) {
-            throw new AccessDeniedException("Non sei autorizzato a modificare questo utente.");
+    boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
+    boolean isSelf = currentUser.getId().equals(id);
+
+    if (!isAdmin && !isSelf) {
+        throw new AccessDeniedException("Non sei autorizzato a modificare questo utente.");
+    }
+
+    User user = userRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato con ID: " + id));
+
+    // ✏️ Se ADMIN → può modificare tutto
+    if (isAdmin) {
+        if (dto.getUsername() != null && !dto.getUsername().isBlank()) {
+            validateDuplicateUsername(dto.getUsername(), id);
+            user.setUsername(dto.getUsername());
         }
 
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato con ID: " + id));
-
-        if (isAdmin) {
-            validateDuplicateUsername(dto.getUsername(), id);
+        if (dto.getEmail() != null && !dto.getEmail().isBlank()) {
             validateDuplicateEmail(dto.getEmail(), id);
-
-            user.setUsername(dto.getUsername());
             user.setEmail(dto.getEmail());
+        }
 
-            if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
-                user.setPassword(passwordEncoder.encode(dto.getPassword()));
-            }
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
 
+        if (dto.getRole() != null && !dto.getRole().isBlank()) {
             try {
                 user.setRole(Role.valueOf(dto.getRole()));
             } catch (IllegalArgumentException e) {
                 throw new InvalidRoleException("Ruolo non valido: " + dto.getRole());
             }
-
-        } else {
-            if (!user.getEmail().equals(dto.getEmail())) {
-                validateDuplicateEmail(dto.getEmail(), id);
-                user.setEmail(dto.getEmail());
-            }
-
-            if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
-                user.setPassword(passwordEncoder.encode(dto.getPassword()));
-            }
         }
 
-        return convertToResponseDto(userRepository.save(user));
+    } else {
+        // ✏️ Se USER → solo email e password
+        if (dto.getEmail() != null && !dto.getEmail().isBlank() && !user.getEmail().equals(dto.getEmail())) {
+            validateDuplicateEmail(dto.getEmail(), id);
+            user.setEmail(dto.getEmail());
+        }
+
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
     }
+
+    return convertToResponseDto(userRepository.save(user));
+}
+
+
 
     @Override
     @Transactional

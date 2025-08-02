@@ -1,7 +1,8 @@
 package itsprodigi.matteocasini.steam_clone_backend.service;
 
-import itsprodigi.matteocasini.steam_clone_backend.dto.UserRequestDTO;
+import itsprodigi.matteocasini.steam_clone_backend.dto.UserRegistrationDTO;
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserResponseDTO;
+import itsprodigi.matteocasini.steam_clone_backend.dto.UserUpdateDTO;
 import itsprodigi.matteocasini.steam_clone_backend.model.User;
 
 
@@ -23,11 +24,8 @@ public interface UserService {
 
     /**
      * Registra un nuovo utente.
-     *
-     * @param userRequestDTO Dati dell'utente da registrare.
-     * @return L'utente registrato.
      */
-    UserResponseDTO registerUser(UserRequestDTO userRequestDTO);
+    UserResponseDTO registerUser(UserRegistrationDTO userRegistrationDTO);
 
     /**
      * Recupera un utente tramite ID.
@@ -48,11 +46,10 @@ public interface UserService {
     /**
      * Aggiorna i dati di un utente esistente.
      *
-     * @param id              ID dell'utente da aggiornare.
-     * @param userRequestDTO  Nuovi dati dell'utente.
-     * @return L'utente aggiornato.
+     * @param id ID dell'utente da aggiornare.
+     * @param userUpdateDTO DTO contenente i nuovi dati dell'utente.
      */
-    UserResponseDTO updateUser(UUID id, UserRequestDTO userRequestDTO);
+    UserResponseDTO updateUser(UUID id, UserUpdateDTO userUpdateDTO);
 
     /**
      * Elimina un utente tramite ID.

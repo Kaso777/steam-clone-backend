@@ -1,8 +1,9 @@
 package itsprodigi.matteocasini.steam_clone_backend.controller;
 
 import itsprodigi.matteocasini.steam_clone_backend.service.UserService;
-import itsprodigi.matteocasini.steam_clone_backend.dto.UserRequestDTO;
+import itsprodigi.matteocasini.steam_clone_backend.dto.UserRegistrationDTO;
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserResponseDTO;
+import itsprodigi.matteocasini.steam_clone_backend.dto.UserUpdateDTO;
 import itsprodigi.matteocasini.steam_clone_backend.exception.InvalidRoleException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,10 +38,11 @@ public class UserController {
      */
     @Valid
     @PostMapping("/register")
-    public ResponseEntity<UserResponseDTO> registerUser(@Valid @RequestBody UserRequestDTO userRequestDTO) {
-        UserResponseDTO registeredUser = userService.registerUser(userRequestDTO);
-        return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
-    }
+public ResponseEntity<UserResponseDTO> registerUser(@Valid @RequestBody UserRegistrationDTO userRegistrationDTO) {
+    UserResponseDTO registeredUser = userService.registerUser(userRegistrationDTO);
+    return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
+}
+
 
     /**
      * Recupera tutti gli utenti registrati.
@@ -73,11 +75,12 @@ public ResponseEntity<UserResponseDTO> getUserById(@PathVariable UUID id) {
      * PUT /api/users/{id}
      */
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable UUID id,
-            @Valid @RequestBody UserRequestDTO userRequestDTO) {
-        UserResponseDTO updatedUser = userService.updateUser(id, userRequestDTO);
-        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
-    }
+public ResponseEntity<UserResponseDTO> updateUser(@PathVariable UUID id,
+        @RequestBody UserUpdateDTO userUpdateDTO) {
+    UserResponseDTO updatedUser = userService.updateUser(id, userUpdateDTO);
+    return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+}
+
 
     /**
      * Elimina un utente tramite ID.
