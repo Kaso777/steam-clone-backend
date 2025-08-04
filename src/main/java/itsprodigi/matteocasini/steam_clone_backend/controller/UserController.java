@@ -4,13 +4,11 @@ import itsprodigi.matteocasini.steam_clone_backend.service.UserService;
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserRegistrationDTO;
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserResponseDTO;
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserUpdateDTO;
-import itsprodigi.matteocasini.steam_clone_backend.exception.InvalidRoleException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import itsprodigi.matteocasini.steam_clone_backend.model.User;
 
 
 import java.util.List;

@@ -37,28 +37,37 @@ class UserGameServiceImplTest {
     private UserGame userGame;
     private UserGameRequestDTO requestDTO;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
+    
 
-        userId = UUID.randomUUID();
-        gameId = UUID.randomUUID();
+    @Mock
+private UserService userService;
 
-        user = new User();
-        user.setId(userId);
-        user.setRole(Role.ROLE_USER);
+@BeforeEach
+void setUp() {
+    MockitoAnnotations.openMocks(this);
 
-        game = new Game();
-        game.setId(gameId);
+    userId = UUID.randomUUID();
+    gameId = UUID.randomUUID();
 
-        requestDTO = new UserGameRequestDTO();
-        requestDTO.setUserUuid(userId);
-        requestDTO.setGameUuid(gameId);
-        requestDTO.setPurchaseDate(LocalDate.now());
-        requestDTO.setPlaytimeHours(10);
+    user = new User();
+    user.setId(userId);
+    user.setRole(Role.ROLE_USER);
 
-        userGame = new UserGame(user, game, requestDTO.getPurchaseDate(), requestDTO.getPlaytimeHours());
-    }
+    // importante: mock del metodo chiamato nel service
+    when(userService.getAuthenticatedUser()).thenReturn(user);
+
+    game = new Game();
+    game.setId(gameId);
+
+    requestDTO = new UserGameRequestDTO();
+    requestDTO.setUserUuid(userId);
+    requestDTO.setGameUuid(gameId);
+    requestDTO.setPurchaseDate(LocalDate.now());
+    requestDTO.setPlaytimeHours(10);
+
+    userGame = new UserGame(user, game, requestDTO.getPurchaseDate(), requestDTO.getPlaytimeHours());
+}
+
 
     @Test
     void testAddGameToUserLibrary() {

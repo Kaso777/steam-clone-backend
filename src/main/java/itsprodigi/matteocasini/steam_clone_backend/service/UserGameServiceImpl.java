@@ -126,10 +126,12 @@ public class UserGameServiceImpl implements UserGameService {
                 userGame.getPlaytimeHours());
     }
 
+    /*
     private LibraryGameItemDTO convertToLibraryItemDto(UserGame userGame) {
         return new LibraryGameItemDTO(
                 new GameResponseDTO(userGame.getGame()),
                 userGame.getPurchaseDate(),
                 userGame.getPlaytimeHours());
     }
+                 */
 }

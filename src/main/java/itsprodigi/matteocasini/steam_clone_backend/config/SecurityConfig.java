@@ -18,7 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter; // Importa UsernamePasswordAuthenticationFilter
 import itsprodigi.matteocasini.steam_clone_backend.service.security.CustomAuthExceptionHandler;
-import itsprodigi.matteocasini.steam_clone_backend.service.security.CustomAccessDeniedHandler;
+
 
 @Configuration
 @EnableWebSecurity
@@ -73,12 +73,12 @@ public class SecurityConfig {
      * @return Un'istanza di DaoAuthenticationProvider.
      */
     @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService); // Il nostro CustomUserDetailsService
-        authProvider.setPasswordEncoder(passwordEncoder()); // Il nostro PasswordEncoder
-        return authProvider;
-    }
+public DaoAuthenticationProvider authenticationProvider() {
+    DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);
+    authProvider.setPasswordEncoder(passwordEncoder());
+    return authProvider;
+}
+
 
 /* 
     @Bean
