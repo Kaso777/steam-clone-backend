@@ -4,11 +4,11 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class UserRequestDTOTest {
+class UserRegistrationDTOTest {
 
     @Test
     void testGettersAndSetters() {
-        UserRequestDTO dto = new UserRequestDTO();
+        UserRegistrationDTO dto = new UserRegistrationDTO();
         dto.setUsername("user");
         dto.setEmail("user@email.com");
         dto.setPassword("password");

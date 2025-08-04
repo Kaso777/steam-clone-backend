@@ -1,6 +1,6 @@
 package itsprodigi.matteocasini.steam_clone_backend.service;
 
-import itsprodigi.matteocasini.steam_clone_backend.dto.UserRequestDTO;
+import itsprodigi.matteocasini.steam_clone_backend.dto.UserRegistrationDTO;
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserResponseDTO;
 import itsprodigi.matteocasini.steam_clone_backend.enums.Role;
 import itsprodigi.matteocasini.steam_clone_backend.exception.ResourceNotFoundException;
@@ -45,7 +45,7 @@ class UserServiceImplTest {
 
     @Test
     void registerUser_successfully_creates_user() {
-        UserRequestDTO dto = new UserRequestDTO("matteo", "matteo@example.com", "secure123", "ROLE_USER");
+        UserRegistrationDTO dto = new UserRegistrationDTO("matteo", "matteo@example.com", "secure123", "ROLE_USER");
 
         when(userRepository.existsByUsername("matteo")).thenReturn(false);
         when(userRepository.existsByEmail("matteo@example.com")).thenReturn(false);
@@ -70,7 +70,7 @@ class UserServiceImplTest {
 
     @Test
     void registerUser_fails_when_username_exists() {
-        UserRequestDTO dto = new UserRequestDTO("existing", "new@example.com", "pass123", "ROLE_USER");
+        UserRegistrationDTO dto = new UserRegistrationDTO("existing", "new@example.com", "pass123", "ROLE_USER");
 
         when(userRepository.existsByUsername("existing")).thenReturn(true);
 
@@ -80,7 +80,7 @@ class UserServiceImplTest {
 
     @Test
     void registerUser_fails_when_email_exists() {
-        UserRequestDTO dto = new UserRequestDTO("newuser", "taken@example.com", "pass123", "ROLE_USER");
+        UserRegistrationDTO dto = new UserRegistrationDTO("newuser", "taken@example.com", "pass123", "ROLE_USER");
 
         when(userRepository.existsByUsername("newuser")).thenReturn(false);
         when(userRepository.existsByEmail("taken@example.com")).thenReturn(true);
@@ -91,7 +91,7 @@ class UserServiceImplTest {
 
     @Test
     void registerUser_fails_when_password_too_short() {
-        UserRequestDTO dto = new UserRequestDTO("shortpass", "short@example.com", "123", "ROLE_USER");
+        UserRegistrationDTO dto = new UserRegistrationDTO("shortpass", "short@example.com", "123", "ROLE_USER");
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> userService.registerUser(dto));
         assertTrue(ex.getMessage().contains("La password deve avere almeno 6 caratteri"));
@@ -99,7 +99,7 @@ class UserServiceImplTest {
 
     @Test
     void registerUser_fails_when_role_invalid() {
-        UserRequestDTO dto = new UserRequestDTO("test", "test@example.com", "password123", "INVALID_ROLE");
+        UserRegistrationDTO dto = new UserRegistrationDTO("test", "test@example.com", "password123", "INVALID_ROLE");
 
         when(userRepository.existsByUsername("test")).thenReturn(false);
         when(userRepository.existsByEmail("test@example.com")).thenReturn(false);

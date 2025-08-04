@@ -159,6 +159,8 @@ public UserResponseDTO updateUser(UUID id, UserUpdateDTO dto) {
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
+
+       
     }
 
     return convertToResponseDto(userRepository.save(user));
