@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import itsprodigi.matteocasini.steam_clone_backend.dto.GameUpdateDTO;
 
 import java.util.List;
 import java.util.UUID;
@@ -50,19 +51,20 @@ public class GameController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<GameResponseDTO> updateGame(
-            @PathVariable UUID id,
-            @Valid @RequestBody GameRequestDTO gameRequestDTO) {
-        try {
-            GameResponseDTO updatedGame = gameService.updateGame(id, gameRequestDTO);
-            return new ResponseEntity<>(updatedGame, HttpStatus.OK);
-        } catch (ResourceNotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+@PreAuthorize("hasRole('ROLE_ADMIN')")
+public ResponseEntity<GameResponseDTO> updateGame(
+        @PathVariable UUID id,
+        @RequestBody GameUpdateDTO gameupdateDTO) {
+    try {
+        GameResponseDTO updatedGame = gameService.updateGame(id, gameupdateDTO);
+        return new ResponseEntity<>(updatedGame, HttpStatus.OK);
+    } catch (ResourceNotFoundException e) {
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    } catch (RuntimeException e) {
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
+}
+
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")

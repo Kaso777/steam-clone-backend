@@ -6,6 +6,7 @@ import itsprodigi.matteocasini.steam_clone_backend.repository.GameRepository;
 import itsprodigi.matteocasini.steam_clone_backend.repository.TagRepository;
 import itsprodigi.matteocasini.steam_clone_backend.dto.GameRequestDTO;
 import itsprodigi.matteocasini.steam_clone_backend.dto.GameResponseDTO;
+import itsprodigi.matteocasini.steam_clone_backend.dto.GameUpdateDTO;
 import itsprodigi.matteocasini.steam_clone_backend.dto.TagDTO;
 import itsprodigi.matteocasini.steam_clone_backend.exception.ResourceNotFoundException;
 
@@ -91,37 +92,53 @@ public class GameServiceImpl implements GameService {
      * Se un altro gioco ha lo stesso titolo, solleva un'eccezione.
      */
     @Override
-    @Transactional
-    public GameResponseDTO updateGame(UUID id, GameRequestDTO gameRequestDTO) {
-        Game game = gameRepository.findByIdWithTags(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Gioco non trovato con ID: " + id));
+@Transactional
+public GameResponseDTO updateGame(UUID id, GameUpdateDTO dto) {
+    Game game = gameRepository.findByIdWithTags(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Gioco non trovato con ID: " + id));
 
-        gameRepository.findByTitle(gameRequestDTO.getTitle())
+    // Controllo per titolo duplicato, se lo sta cambiando
+    if (dto.getTitle() != null && !dto.getTitle().isBlank()) {
+        gameRepository.findByTitle(dto.getTitle())
                 .ifPresent(existingGame -> {
                     if (!existingGame.getId().equals(id)) {
-                        throw new RuntimeException("Un altro gioco con il titolo '" + gameRequestDTO.getTitle() + "' esiste già.");
+                        throw new RuntimeException("Un altro gioco con il titolo '" + dto.getTitle() + "' esiste già.");
                     }
                 });
-
-        game.setTitle(gameRequestDTO.getTitle());
-        game.setPrice(gameRequestDTO.getPrice());
-        game.setReleaseDate(gameRequestDTO.getReleaseDate());
-        game.setDeveloper(gameRequestDTO.getDeveloper());
-        game.setPublisher(gameRequestDTO.getPublisher());
-
-        // Aggiorna i tag
-        game.getTags().clear();
-        if (gameRequestDTO.getTagNames() != null && !gameRequestDTO.getTagNames().isEmpty()) {
-            for (String tagName : gameRequestDTO.getTagNames()) {
-                Tag tag = tagRepository.findByNameIgnoreCase(tagName)
-                        .orElseGet(() -> tagRepository.save(new Tag(tagName)));
-                game.addTag(tag);
-            }
-        }
-
-        Game updatedGame = gameRepository.save(game);
-        return convertToResponseDto(updatedGame);
+        game.setTitle(dto.getTitle());
     }
+
+    if (dto.getPrice() != null) {
+        game.setPrice(dto.getPrice());
+    }
+
+    if (dto.getReleaseDate() != null) {
+        game.setReleaseDate(dto.getReleaseDate());
+    }
+
+    if (dto.getDeveloper() != null && !dto.getDeveloper().isBlank()) {
+        game.setDeveloper(dto.getDeveloper());
+    }
+
+    if (dto.getPublisher() != null && !dto.getPublisher().isBlank()) {
+        game.setPublisher(dto.getPublisher());
+    }
+
+    if (dto.getTagNames() != null) {
+        game.getTags().clear();
+        for (String tagName : dto.getTagNames()) {
+            Tag tag = tagRepository.findByNameIgnoreCase(tagName)
+                    .orElseGet(() -> tagRepository.save(new Tag(tagName)));
+            game.addTag(tag);
+        }
+    }
+
+    Game updatedGame = gameRepository.save(game);
+    System.out.println(">> TAGS DA JSON: " + dto.getTagNames());
+
+    return convertToResponseDto(updatedGame);
+}
+
 
     /**
      * Elimina un gioco tramite ID.

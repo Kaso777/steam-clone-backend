@@ -2,6 +2,7 @@ package itsprodigi.matteocasini.steam_clone_backend.service;
 
 import itsprodigi.matteocasini.steam_clone_backend.dto.GameRequestDTO;
 import itsprodigi.matteocasini.steam_clone_backend.dto.GameResponseDTO;
+import itsprodigi.matteocasini.steam_clone_backend.dto.GameUpdateDTO;
 import itsprodigi.matteocasini.steam_clone_backend.exception.ResourceNotFoundException;
 
 import java.util.List;
@@ -46,7 +47,8 @@ public interface GameService {
      * @return gioco aggiornato
      * @throws ResourceNotFoundException se non trovato
      */
-    GameResponseDTO updateGame(UUID id, GameRequestDTO gameRequestDTO);
+    GameResponseDTO updateGame(UUID id, GameUpdateDTO gameUpdateDTO);
+
 
     /**
      * Elimina un gioco esistente.
