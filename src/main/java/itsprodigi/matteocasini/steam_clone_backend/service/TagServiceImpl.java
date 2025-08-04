@@ -54,10 +54,24 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    @Transactional
-    public void deleteTag(Long id) {
-        tagRepository.deleteById(id);
-    }
+@Transactional
+public void deleteTag(Long id) {
+    Tag tag = tagRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Tag non trovato con ID: " + id));
+
+    // Rimuovi il tag da tutti i giochi associati
+    tag.getGames().forEach(game -> {
+        game.getTags().remove(tag);
+        // se vuoi, salva il gioco (dipende da come è configurato il cascade)
+        // gameRepository.save(game); // se serve, devi iniettare gameRepository
+    });
+
+    // svuota la lista per sicurezza
+    tag.getGames().clear();
+
+    tagRepository.delete(tag);
+}
+
 
     private TagDTO convertToDto(Tag tag) {
         TagDTO dto = new TagDTO();

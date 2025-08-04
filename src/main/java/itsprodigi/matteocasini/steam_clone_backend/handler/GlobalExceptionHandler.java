@@ -120,4 +120,14 @@ public class GlobalExceptionHandler {
                                 request.getDescription(false).replace("uri=", ""));
                 return new ResponseEntity<>(errorResponse, status);
         }
+
+        @ExceptionHandler(GameAlreadyInLibraryException.class)
+public ResponseEntity<ErrorResponseDTO> handleGameAlreadyInLibrary(GameAlreadyInLibraryException ex, WebRequest request) {
+    return buildErrorResponse(
+            HttpStatus.CONFLICT,
+            "Gioco già presente nella libreria",
+            List.of(ex.getMessage()),
+            request);
+}
+
 }
