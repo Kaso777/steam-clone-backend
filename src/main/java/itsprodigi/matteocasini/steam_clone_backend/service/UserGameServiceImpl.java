@@ -101,7 +101,7 @@ public class UserGameServiceImpl implements UserGameService {
                 userGame.getPurchaseDate(),
                 userGame.getPlaytimeHours());
     }
-
+// Serve questa?
     private LibraryGameItemDTO convertToLibraryItemDto(UserGame userGame) {
         return new LibraryGameItemDTO(
                 new GameResponseDTO(userGame.getGame()),
