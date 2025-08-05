@@ -122,12 +122,23 @@ public class GlobalExceptionHandler {
         }
 
         @ExceptionHandler(GameAlreadyInLibraryException.class)
-public ResponseEntity<ErrorResponseDTO> handleGameAlreadyInLibrary(GameAlreadyInLibraryException ex, WebRequest request) {
-    return buildErrorResponse(
-            HttpStatus.CONFLICT,
-            "Gioco già presente nella libreria",
-            List.of(ex.getMessage()),
-            request);
-}
+        public ResponseEntity<ErrorResponseDTO> handleGameAlreadyInLibrary(GameAlreadyInLibraryException ex,
+                        WebRequest request) {
+                return buildErrorResponse(
+                                HttpStatus.CONFLICT,
+                                "Gioco già presente nella libreria",
+                                List.of(ex.getMessage()),
+                                request);
+        }
+
+        @ExceptionHandler(InvalidUserProfileDataException.class)
+        public ResponseEntity<ErrorResponseDTO> handleInvalidUserProfileData(InvalidUserProfileDataException ex,
+                        WebRequest request) {
+                return buildErrorResponse(
+                                HttpStatus.BAD_REQUEST,
+                                "Errore di validazione del profilo utente",
+                                List.of(ex.getMessage()),
+                                request);
+        }
 
 }

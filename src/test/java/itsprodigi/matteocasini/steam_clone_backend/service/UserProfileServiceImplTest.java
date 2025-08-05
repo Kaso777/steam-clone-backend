@@ -35,29 +35,28 @@ class UserProfileServiceImplTest {
     }
 
     @Test
-void getUserProfileById_returnsProfile() {
-    UUID userId = UUID.randomUUID();
-    User user = new User();
-    user.setId(userId);
-    user.setUsername("matteo");
+    void getUserProfileById_returnsProfile() {
+        UUID userId = UUID.randomUUID();
+        User user = new User();
+        user.setId(userId);
+        user.setUsername("matteo");
 
-    UserProfile profile = new UserProfile();
-    profile.setId(userId);
-    profile.setUser(user);
-    profile.setNickname("Matty");
-    profile.setAvatarUrl("http://img.com/avatar.png");
-    profile.setBio("bio test");
+        UserProfile profile = new UserProfile();
+        profile.setId(userId);
+        profile.setUser(user);
+        profile.setNickname("Matty");
+        profile.setAvatarUrl("http://img.com/avatar.png");
+        profile.setBio("bio test");
 
-    when(userProfileRepository.findById(userId)).thenReturn(Optional.of(profile));
+        when(userProfileRepository.findById(userId)).thenReturn(Optional.of(profile));
 
-    UserProfileResponseDTO result = userProfileService.getUserProfileById(userId);
+        UserProfileResponseDTO result = userProfileService.getUserProfileById(userId);
 
-    assertNotNull(result);
-    assertEquals("Matty", result.getNickname());
-    assertEquals("http://img.com/avatar.png", result.getAvatarUrl());
-    assertEquals("bio test", result.getBio());
-}
-
+        assertNotNull(result);
+        assertEquals("Matty", result.getNickname());
+        assertEquals("http://img.com/avatar.png", result.getAvatarUrl());
+        assertEquals("bio test", result.getBio());
+    }
 
     @Test
     void createOrUpdateUserProfile_createsNewProfile() {
@@ -67,9 +66,9 @@ void getUserProfileById_returnsProfile() {
         user.setId(userId);
 
         UserProfileRequestDTO dto = new UserProfileRequestDTO();
-        dto.setNickname("TestNick");
-        dto.setAvatarUrl("http://test.url/img.png");
-        dto.setBio("Test bio");
+        dto.setNickname(Optional.of("TestNick"));
+        dto.setAvatarUrl(Optional.of("http://test.url/img.png"));
+        dto.setBio(Optional.of("Test bio"));
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userProfileRepository.findById(userId)).thenReturn(Optional.empty());
@@ -101,18 +100,16 @@ void getUserProfileById_returnsProfile() {
     }
 
     @Test
-void getUserProfileById_notFound_throwsException() {
-    UUID userId = UUID.randomUUID();
-    when(userProfileRepository.findById(userId)).thenReturn(Optional.empty());
+    void getUserProfileById_notFound_throwsException() {
+        UUID userId = UUID.randomUUID();
+        when(userProfileRepository.findById(userId)).thenReturn(Optional.empty());
 
-    UserProfileNotFoundException ex = assertThrows(
-        UserProfileNotFoundException.class,
-        () -> userProfileService.getUserProfileById(userId)
-    );
+        UserProfileNotFoundException ex = assertThrows(
+                UserProfileNotFoundException.class,
+                () -> userProfileService.getUserProfileById(userId));
 
-    assertEquals("Profilo utente non trovato per l'utente con ID: " + userId, ex.getMessage());
-}
-
+        assertEquals("Profilo utente non trovato per l'utente con ID: " + userId, ex.getMessage());
+    }
 
     @Test
     void deleteUserProfile_userNotFound_throwsException() {

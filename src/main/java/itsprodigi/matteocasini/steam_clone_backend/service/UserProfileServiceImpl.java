@@ -2,6 +2,7 @@ package itsprodigi.matteocasini.steam_clone_backend.service;
 
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserProfileRequestDTO;
 import itsprodigi.matteocasini.steam_clone_backend.dto.UserProfileResponseDTO;
+import itsprodigi.matteocasini.steam_clone_backend.exception.InvalidUserProfileDataException;
 import itsprodigi.matteocasini.steam_clone_backend.exception.UserNotFoundException;
 import itsprodigi.matteocasini.steam_clone_backend.exception.UserProfileNotFoundException;
 import itsprodigi.matteocasini.steam_clone_backend.model.User;
@@ -31,21 +32,21 @@ public class UserProfileServiceImpl implements UserProfileService {
     }
 
     @Override
-public UserProfileResponseDTO getUserProfileById(UUID userId) {
-    UserProfile profile = userProfileRepository.findById(userId)
-            .orElseThrow(() -> new UserProfileNotFoundException(userId));
+    public UserProfileResponseDTO getUserProfileById(UUID userId) {
+        UserProfile profile = userProfileRepository.findById(userId)
+                .orElseThrow(() -> new UserProfileNotFoundException(userId));
 
-    return new UserProfileResponseDTO(
-            profile.getId(),
-            profile.getNickname(),
-            profile.getAvatarUrl(),
-            profile.getBio()
-    );
-}
+        return new UserProfileResponseDTO(
+                profile.getId(),
+                profile.getNickname(),
+                profile.getAvatarUrl(),
+                profile.getBio());
+    }
 
     @Override
     @Transactional
-    public UserProfileResponseDTO createOrUpdateUserProfile(UUID userId, UserProfileRequestDTO profileDetailsRequestDTO) {
+    public UserProfileResponseDTO createOrUpdateUserProfile(UUID userId,
+            UserProfileRequestDTO profileDetailsRequestDTO) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
@@ -58,9 +59,21 @@ public UserProfileResponseDTO getUserProfileById(UUID userId) {
             return newProfile;
         });
 
-        userProfile.setNickname(profileDetailsRequestDTO.getNickname());
-        userProfile.setAvatarUrl(profileDetailsRequestDTO.getAvatarUrl());
-        userProfile.setBio(profileDetailsRequestDTO.getBio());
+        if (profileDetailsRequestDTO.getNickname().isPresent()) {
+            String nickname = profileDetailsRequestDTO.getNickname().get();
+            if (nickname.isBlank()) {
+                throw new InvalidUserProfileDataException("Il nickname non può essere vuoto o solo spazi.");
+            }
+            userProfile.setNickname(nickname);
+        }
+
+        if (profileDetailsRequestDTO.getAvatarUrl().isPresent()) {
+            userProfile.setAvatarUrl(profileDetailsRequestDTO.getAvatarUrl().get());
+        }
+
+        if (profileDetailsRequestDTO.getBio().isPresent()) {
+            userProfile.setBio(profileDetailsRequestDTO.getBio().get());
+        }
 
         UserProfile savedProfile = userProfileRepository.save(userProfile);
         return convertToResponseDto(savedProfile);
