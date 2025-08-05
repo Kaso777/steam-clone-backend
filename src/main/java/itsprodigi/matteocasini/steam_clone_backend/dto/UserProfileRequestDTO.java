@@ -1,12 +1,11 @@
 package itsprodigi.matteocasini.steam_clone_backend.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public class UserProfileRequestDTO {
 
-    @NotBlank(message = "Il nickname non può essere vuoto o composto solo da spazi.")
-    @Size(min = 3, max = 50, message = "Il nickname deve contenere tra 3 e 50 caratteri.")
+    
+    @Size(min = 1, max = 50, message = "Il nickname deve contenere tra 1 e 50 caratteri.")
     private String nickname;
 
     @Size(max = 255, message = "L'URL dell'avatar non può superare i 255 caratteri.")
