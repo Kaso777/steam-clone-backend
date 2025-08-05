@@ -22,11 +22,7 @@ public class GameResponseDTO {
      */
     private List<TagDTO> tags;
 
-    // --- Costruttori ---
-
-    /**
-     * Costruttore vuoto richiesto per la deserializzazione automatica.
-     */
+    // Costruttori
     public GameResponseDTO() {
     }
 
@@ -77,7 +73,7 @@ public class GameResponseDTO {
         this.tags = tags;
     }
 
-    // --- Getter ---
+    // Getter
 
     public UUID getId() {
         return id;
@@ -107,7 +103,7 @@ public class GameResponseDTO {
         return tags;
     }
 
-    // --- Setter ---
+    // Setter
 
     public void setId(UUID id) {
         this.id = id;
@@ -136,8 +132,6 @@ public class GameResponseDTO {
     public void setTags(List<TagDTO> tags) {
         this.tags = tags;
     }
-
-    // --- toString ---
 
     @Override
     public String toString() {

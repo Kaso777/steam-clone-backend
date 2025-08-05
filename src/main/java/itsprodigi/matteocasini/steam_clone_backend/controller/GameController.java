@@ -51,20 +51,19 @@ public class GameController {
     }
 
     @PutMapping("/{id}")
-@PreAuthorize("hasRole('ROLE_ADMIN')")
-public ResponseEntity<GameResponseDTO> updateGame(
-        @PathVariable UUID id,
-        @RequestBody GameUpdateDTO gameupdateDTO) {
-    try {
-        GameResponseDTO updatedGame = gameService.updateGame(id, gameupdateDTO);
-        return new ResponseEntity<>(updatedGame, HttpStatus.OK);
-    } catch (ResourceNotFoundException e) {
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    } catch (RuntimeException e) {
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<GameResponseDTO> updateGame(
+            @PathVariable UUID id,
+            @RequestBody GameUpdateDTO gameupdateDTO) {
+        try {
+            GameResponseDTO updatedGame = gameService.updateGame(id, gameupdateDTO);
+            return new ResponseEntity<>(updatedGame, HttpStatus.OK);
+        } catch (ResourceNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
-}
-
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")

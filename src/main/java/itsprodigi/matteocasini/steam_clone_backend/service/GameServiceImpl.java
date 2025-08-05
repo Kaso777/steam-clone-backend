@@ -19,7 +19,8 @@ import java.util.stream.Collectors;
 
 /**
  * Implementazione dell'interfaccia GameService.
- * Gestisce la logica di business relativa ai giochi e alle associazioni con i tag.
+ * Gestisce la logica di business relativa ai giochi e alle associazioni con i
+ * tag.
  */
 @Service
 public class GameServiceImpl implements GameService {
@@ -92,53 +93,51 @@ public class GameServiceImpl implements GameService {
      * Se un altro gioco ha lo stesso titolo, solleva un'eccezione.
      */
     @Override
-@Transactional
-public GameResponseDTO updateGame(UUID id, GameUpdateDTO dto) {
-    Game game = gameRepository.findByIdWithTags(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Gioco non trovato con ID: " + id));
+    @Transactional
+    public GameResponseDTO updateGame(UUID id, GameUpdateDTO dto) {
+        Game game = gameRepository.findByIdWithTags(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Gioco non trovato con ID: " + id));
 
-    // Controllo per titolo duplicato, se lo sta cambiando
-    if (dto.getTitle() != null && !dto.getTitle().isBlank()) {
-        gameRepository.findByTitle(dto.getTitle())
-                .ifPresent(existingGame -> {
-                    if (!existingGame.getId().equals(id)) {
-                        throw new RuntimeException("Un altro gioco con il titolo '" + dto.getTitle() + "' esiste già.");
-                    }
-                });
-        game.setTitle(dto.getTitle());
-    }
-
-    if (dto.getPrice() != null) {
-        game.setPrice(dto.getPrice());
-    }
-
-    if (dto.getReleaseDate() != null) {
-        game.setReleaseDate(dto.getReleaseDate());
-    }
-
-    if (dto.getDeveloper() != null && !dto.getDeveloper().isBlank()) {
-        game.setDeveloper(dto.getDeveloper());
-    }
-
-    if (dto.getPublisher() != null && !dto.getPublisher().isBlank()) {
-        game.setPublisher(dto.getPublisher());
-    }
-
-    if (dto.getTagNames() != null) {
-        game.getTags().clear();
-        for (String tagName : dto.getTagNames()) {
-            Tag tag = tagRepository.findByNameIgnoreCase(tagName)
-                    .orElseGet(() -> tagRepository.save(new Tag(tagName)));
-            game.addTag(tag);
+        // Controllo per titolo duplicato, se lo sta cambiando
+        if (dto.getTitle() != null && !dto.getTitle().isBlank()) {
+            gameRepository.findByTitle(dto.getTitle())
+                    .ifPresent(existingGame -> {
+                        if (!existingGame.getId().equals(id)) {
+                            throw new RuntimeException(
+                                    "Un altro gioco con il titolo '" + dto.getTitle() + "' esiste già.");
+                        }
+                    });
+            game.setTitle(dto.getTitle());
         }
+
+        if (dto.getPrice() != null) {
+            game.setPrice(dto.getPrice());
+        }
+
+        if (dto.getReleaseDate() != null) {
+            game.setReleaseDate(dto.getReleaseDate());
+        }
+
+        if (dto.getDeveloper() != null && !dto.getDeveloper().isBlank()) {
+            game.setDeveloper(dto.getDeveloper());
+        }
+
+        if (dto.getPublisher() != null && !dto.getPublisher().isBlank()) {
+            game.setPublisher(dto.getPublisher());
+        }
+
+        if (dto.getTagNames() != null) {
+            game.getTags().clear();
+            for (String tagName : dto.getTagNames()) {
+                Tag tag = tagRepository.findByNameIgnoreCase(tagName)
+                        .orElseGet(() -> tagRepository.save(new Tag(tagName)));
+                game.addTag(tag);
+            }
+        }
+
+        Game updatedGame = gameRepository.save(game);
+        return convertToResponseDto(updatedGame);
     }
-
-    Game updatedGame = gameRepository.save(game);
-    System.out.println(">> TAGS DA JSON: " + dto.getTagNames());
-
-    return convertToResponseDto(updatedGame);
-}
-
 
     /**
      * Elimina un gioco tramite ID.
@@ -211,7 +210,6 @@ public GameResponseDTO updateGame(UUID id, GameUpdateDTO dto) {
                 game.getReleaseDate(),
                 game.getDeveloper(),
                 game.getPublisher(),
-                tagDtos
-        );
+                tagDtos);
     }
 }

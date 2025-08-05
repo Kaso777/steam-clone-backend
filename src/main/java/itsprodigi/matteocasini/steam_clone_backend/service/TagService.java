@@ -41,7 +41,7 @@ public interface TagService {
     /**
      * Aggiorna un tag esistente.
      * 
-     * @param id ID del tag
+     * @param id     ID del tag
      * @param tagDTO nuovi dati
      * @return tag aggiornato
      */

@@ -34,19 +34,16 @@ public class Game {
     @Column(name = "publisher", nullable = false, length = 100)
     private String publisher;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(
-        name = "game_tags",
-        joinColumns = @JoinColumn(name = "game_id"),
-        inverseJoinColumns = @JoinColumn(name = "tag_id")
-    )
+    @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @JoinTable(name = "game_tags", joinColumns = @JoinColumn(name = "game_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
     private Set<Tag> tags = new HashSet<>();
 
     @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<UserGame> userGames = new HashSet<>();
 
     // Costruttori
-    public Game() {}
+    public Game() {
+    }
 
     public Game(String title, BigDecimal price, LocalDate releaseDate, String developer, String publisher) {
         this.title = title;
@@ -146,8 +143,10 @@ public class Game {
     // equals, hashCode, toString
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Game)) return false;
+        if (this == o)
+            return true;
+        if (!(o instanceof Game))
+            return false;
         Game game = (Game) o;
         return id != null && id.equals(game.id);
     }

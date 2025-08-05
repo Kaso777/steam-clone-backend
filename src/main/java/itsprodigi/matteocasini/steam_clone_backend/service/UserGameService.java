@@ -12,6 +12,7 @@ public interface UserGameService {
 
     UserGameResponseDTO addGameToUserLibrary(UserGameRequestDTO userGameRequestDTO);
 
+    // è usata? non creedo commenta
     Optional<UserGameResponseDTO> getUserGameByIds(UUID userUuid, UUID gameUuid);
 
     UserLibraryResponseDTO getUserLibrary(UUID userUuid);

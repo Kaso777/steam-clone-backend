@@ -2,10 +2,10 @@ package itsprodigi.matteocasini.steam_clone_backend.dto;
 
 public class UserUpdateDTO {
 
-    private String username; // Solo modificabile da admin
+    private String username;
     private String email;
     private String password;
-    private String role; // Solo modificabile da admin
+    private String role;
 
     public UserUpdateDTO() {
     }

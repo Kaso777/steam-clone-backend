@@ -5,20 +5,18 @@ import jakarta.validation.constraints.Size;
 
 /**
  * DTO per la richiesta di login.
- * Contiene username e password forniti dall'utente.
  */
 public class LoginRequest {
 
-    @NotBlank(message = "Username cannot be empty")
-    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+    @NotBlank(message = "Lo username non può essere vuoto")
+    @Size(min = 3, max = 50, message = "Lo username deve contenere tra 3 e 50 caratteri")
     private String username;
 
-    @NotBlank(message = "Password cannot be empty")
-    @Size(min = 6, message = "Password must be at least 6 characters long")
+    @NotBlank(message = "La password non può essere vuota")
+    @Size(min = 6, message = "La password deve contenere almeno 6 caratteri")
     private String password;
 
     public LoginRequest() {
-        // Costruttore vuoto richiesto da Spring per la deserializzazione JSON
     }
 
     public LoginRequest(String username, String password) {

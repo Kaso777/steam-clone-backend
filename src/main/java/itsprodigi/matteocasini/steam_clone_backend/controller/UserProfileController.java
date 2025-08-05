@@ -18,9 +18,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 /**
- * Controller REST dedicato alla gestione dei profili utente.
- * Separato dal controller utente principale per garantire chiarezza e
- * separazione delle responsabilità.
+ * Controller REST per la gestione dei profili utente.
+ * Separato dal controller utente principale per chiarezza architetturale.
  */
 @RestController
 @RequestMapping("/api/users/{userId}/profile")
@@ -33,45 +32,35 @@ public class UserProfileController {
         this.userProfileService = userProfileService;
     }
 
-    /**
-     * Recupera il profilo dell'utente specificato.
-     * GET /api/users/{userId}/profile
-     */
     @GetMapping
     public ResponseEntity<UserProfileResponseDTO> getUserProfile(@PathVariable UUID userId) {
         UserProfileResponseDTO profile = userProfileService.getUserProfileById(userId);
         return ResponseEntity.ok(profile);
     }
 
-    /**
-     * Crea o aggiorna il profilo dell'utente.
-     * PUT /api/users/{userId}/profile
-     */
     @PutMapping
     public ResponseEntity<UserProfileResponseDTO> createOrUpdateUserProfile(
             @PathVariable UUID userId,
             @Valid @RequestBody UserProfileRequestDTO profileDetailsRequestDTO) {
-                 Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    User currentUser = (User) auth.getPrincipal();
 
-    // Controllo: o admin o stesso user
-    if (!currentUser.getId().equals(userId) && !currentUser.getRole().equals(Role.ROLE_ADMIN)) {
-        throw new AccessDeniedException("Non autorizzato a modificare questo profilo");
-    }
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) auth.getPrincipal();
 
+        // Consente la modifica solo all'utente stesso o ad un admin
+        if (!currentUser.getId().equals(userId) && !currentUser.getRole().equals(Role.ROLE_ADMIN)) {
+            throw new AccessDeniedException("Non autorizzato a modificare questo profilo");
+        }
 
-
-        UserProfileResponseDTO updatedProfile = userProfileService.createOrUpdateUserProfile(userId,
-                profileDetailsRequestDTO);
+        UserProfileResponseDTO updatedProfile = userProfileService.createOrUpdateUserProfile(userId, profileDetailsRequestDTO);
         return ResponseEntity.ok(updatedProfile);
     }
 
+    // Metodo non utilizzato: la cancellazione del profilo è gestita dal controller utente.
     /*
-    Messo per completezza ma la delete viene gestita nel controller principale degli utenti
     @DeleteMapping
     public ResponseEntity<Void> deleteUserProfile(@PathVariable UUID userId) {
         userProfileService.deleteUserProfile(userId);
         return ResponseEntity.noContent().build();
     }
-         */
+    */
 }

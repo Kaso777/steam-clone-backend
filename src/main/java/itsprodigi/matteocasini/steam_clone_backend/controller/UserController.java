@@ -10,10 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
 import java.util.List;
 import java.util.UUID;
-
 
 /**
  * Controller REST per la gestione degli utenti.
@@ -32,19 +30,16 @@ public class UserController {
 
     /**
      * Registra un nuovo utente.
-     * POST /api/users/register
      */
     @Valid
     @PostMapping("/register")
-public ResponseEntity<UserResponseDTO> registerUser(@Valid @RequestBody UserRegistrationDTO userRegistrationDTO) {
-    UserResponseDTO registeredUser = userService.registerUser(userRegistrationDTO);
-    return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
-}
-
+    public ResponseEntity<UserResponseDTO> registerUser(@Valid @RequestBody UserRegistrationDTO userRegistrationDTO) {
+        UserResponseDTO registeredUser = userService.registerUser(userRegistrationDTO);
+        return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
+    }
 
     /**
      * Recupera tutti gli utenti registrati.
-     * GET /api/users
      */
     @GetMapping
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
@@ -54,50 +49,27 @@ public ResponseEntity<UserResponseDTO> registerUser(@Valid @RequestBody UserRegi
 
     /**
      * Recupera un utente tramite ID.
-     * GET /api/users/{id}
      */
     @GetMapping("/{id}")
-public ResponseEntity<UserResponseDTO> getUserById(@PathVariable UUID id) {
-    //User authenticatedUser = userService.getAuthenticatedUser(); // prende l'utente loggato
-
-    //if (!authenticatedUser.getRole().equals("ADMIN") && !authenticatedUser.getId().equals(id)) {
-      //  throw new InvalidRoleException("Non hai i permessi per visualizzare questo utente.");
-   // }
-
-    return ResponseEntity.ok(userService.getUserById(id));
-}
-
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable UUID id) {
+        return ResponseEntity.ok(userService.getUserById(id));
+    }
 
     /**
      * Aggiorna i dati di un utente esistente.
-     * PUT /api/users/{id}
      */
     @PutMapping("/{id}")
-public ResponseEntity<UserResponseDTO> updateUser(@PathVariable UUID id,
-        @RequestBody UserUpdateDTO userUpdateDTO) {
-    UserResponseDTO updatedUser = userService.updateUser(id, userUpdateDTO);
-    return new ResponseEntity<>(updatedUser, HttpStatus.OK);
-}
-
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable UUID id, @RequestBody UserUpdateDTO userUpdateDTO) {
+        UserResponseDTO updatedUser = userService.updateUser(id, userUpdateDTO);
+        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+    }
 
     /**
      * Elimina un utente tramite ID.
-     * DELETE /api/users/{id}
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
         userService.deleteUser(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
-
-    /*
-    
-     // Fallback generico per errori non gestiti nei metodi sopra.
-     // Utile per test o fallback semplice durante lo sviluppo.
-     
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<String> fallbackHandler(RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Utente non trovato");
-    }
-        */
 }

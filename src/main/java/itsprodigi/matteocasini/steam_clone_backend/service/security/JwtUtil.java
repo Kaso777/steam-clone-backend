@@ -20,16 +20,17 @@ import java.util.stream.Collectors;
 
 /**
  * Classe di utilità per la gestione dei JSON Web Token (JWT).
- * Permette la generazione, validazione e decodifica dei token.
+ * Si occupa di generazione, validazione e decodifica dei token.
  */
 @Component
 public class JwtUtil {
 
-    // Chiave segreta per la firma del token (in Base64), configurata in application.properties
+    // Chiave segreta in Base64 per la firma del token (configurata in
+    // application.properties)
     @Value("${jwt.secret}")
     private String SECRET_KEY;
 
-    // Durata del token in millisecondi (es. 10 ore = 1000 * 60 * 60 * 10)
+    // Durata del token in millisecondi
     @Value("${jwt.expiration}")
     private long EXPIRATION_TIME;
 
@@ -41,7 +42,7 @@ public class JwtUtil {
     }
 
     /**
-     * Estrae un claim specifico dal token usando una funzione di risoluzione.
+     * Estrae un claim specifico dal token.
      */
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
@@ -56,13 +57,13 @@ public class JwtUtil {
                 .parser()
                 .verifyWith(getSignKey())
                 .build();
-
         Jws<Claims> claimsJws = parser.parseSignedClaims(token);
         return claimsJws.getPayload();
     }
 
     /**
-     * Genera un token JWT per un utente autenticato.
+     * Genera un token JWT per un utente autenticato, contenente username e ruoli
+     * dell'utente.
      */
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
@@ -71,7 +72,6 @@ public class JwtUtil {
         claims.put("roles", userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList()));
-
         return createToken(claims, userDetails.getUsername());
     }
 
@@ -97,7 +97,7 @@ public class JwtUtil {
     }
 
     /**
-     * Verifica se un token JWT è scaduto.
+     * Verifica se un token è scaduto.
      */
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
@@ -111,7 +111,7 @@ public class JwtUtil {
     }
 
     /**
-     * Restituisce la chiave di firma decodificata da Base64.
+     * Decodifica la chiave segreta da Base64 e la restituisce come SecretKey.
      */
     private SecretKey getSignKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);

@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
 import java.util.UUID;
 
 /**
@@ -30,7 +29,6 @@ public class UserGameController {
 
     /**
      * Aggiunge un gioco alla libreria di un utente.
-     * POST /api/user-games
      */
     @PostMapping("/users/{userUuid}/library/addgame")
     public ResponseEntity<UserGameResponseDTO> addGameToUserLibrary(@Valid @RequestBody UserGameRequestDTO userGameRequestDTO) {
@@ -38,22 +36,8 @@ public class UserGameController {
         return new ResponseEntity<>(newUserGame, HttpStatus.CREATED);
     }
 
-    /*
-    
-     * Recupera un'associazione gioco-utente specifica.
-     * GET /api/users/{userUuid}/games/{gameUuid}
-     
-    @GetMapping("/users/{userUuid}/games/{gameUuid}")
-    public ResponseEntity<UserGameResponseDTO> getUserGameByIds(@PathVariable UUID userUuid, @PathVariable UUID gameUuid) {
-        return userGameService.getUserGameByIds(userUuid, gameUuid)
-                .map(userGameDto -> new ResponseEntity<>(userGameDto, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-    }
- */
-
     /**
      * Recupera la libreria completa di un utente.
-     * GET /api/users/{userUuid}/library
      */
     @GetMapping("/users/{userUuid}/library")
     public ResponseEntity<UserLibraryResponseDTO> getUserLibrary(@PathVariable UUID userUuid) {
@@ -62,28 +46,11 @@ public class UserGameController {
     }
 
     /**
-     * Aggiorna i dati di un gioco nella libreria di un utente.
-     * PUT /api/users/{userUuid}/games/{gameUuid}
-     
-    @PutMapping("/users/{userUuid}/games/{gameUuid}")
-    public ResponseEntity<UserGameResponseDTO> updateUserGame(
-            @PathVariable UUID userUuid,
-            @PathVariable UUID gameUuid,
-            @Valid @RequestBody UserGameRequestDTO userGameRequestDTO) {
-        UserGameResponseDTO updatedUserGame = userGameService.updateUserGame(userUuid, gameUuid, userGameRequestDTO);
-        return new ResponseEntity<>(updatedUserGame, HttpStatus.OK);
-    }
-        */
-
-    /**
      * Rimuove un gioco dalla libreria di un utente.
-     * DELETE /api/users/{userUuid}/games/{gameUuid}
      */
     @DeleteMapping("/users/{userUuid}/library/{gameUuid}")
     public ResponseEntity<Void> removeGameFromUserLibrary(@PathVariable UUID userUuid, @PathVariable UUID gameUuid) {
         userGameService.removeGameFromUserLibrary(userUuid, gameUuid);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
-
-    
 }

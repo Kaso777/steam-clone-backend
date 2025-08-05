@@ -8,13 +8,15 @@ public class ErrorResponseDTO {
     private int status;
     private String error;
     private String message;
-    private List<String> details; // Per messaggi di errore multipli, es. di validazione
+    private List<String> details;
     private String path;
 
+    /**
+     * Costruttore vuoto richiesto da Spring per la deserializzazione JSON.
+     */
     public ErrorResponseDTO() {
     }
 
-    // Costruttore completo
     public ErrorResponseDTO(LocalDateTime timestamp, int status, String error, String message, List<String> details, String path) {
         this.timestamp = timestamp;
         this.status = status;
@@ -24,7 +26,7 @@ public class ErrorResponseDTO {
         this.path = path;
     }
 
-    // --- Getters and Setters ---
+    // Getters e Setters
     public LocalDateTime getTimestamp() {
         return timestamp;
     }
@@ -72,4 +74,4 @@ public class ErrorResponseDTO {
     public void setPath(String path) {
         this.path = path;
     }
-} 
+}

@@ -152,8 +152,10 @@ public class User implements UserDetails {
     // equals e hashCode (solo su id)
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof User user)) return false;
+        if (this == o)
+            return true;
+        if (!(o instanceof User user))
+            return false;
         return Objects.equals(id, user.id);
     }
 

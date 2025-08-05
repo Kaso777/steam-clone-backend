@@ -98,7 +98,7 @@ public class UserProfile {
         return Objects.hash(id);
     }
 
-    // toString leggero (opzionale)
+    // toString leggero per evitare cicli infiniti o dati sensibili
     @Override
     public String toString() {
         return "UserProfile{" +

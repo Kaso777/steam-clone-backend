@@ -11,13 +11,14 @@ import java.util.UUID;
 
 /**
  * Servizio per la gestione dei giochi.
- * Definisce operazioni CRUD e ricerche specifiche per titolo, tag, sviluppatore ed editore.
+ * Definisce operazioni CRUD e ricerche specifiche per titolo, tag, sviluppatore
+ * ed editore.
  */
 public interface GameService {
 
     /**
      * Crea un nuovo gioco.
-     * 
+     *
      * @param gameRequestDTO dati per la creazione del gioco
      * @return gioco creato
      */
@@ -25,7 +26,7 @@ public interface GameService {
 
     /**
      * Recupera un gioco tramite il suo ID.
-     * 
+     *
      * @param id ID del gioco
      * @return gioco se esistente
      * @throws ResourceNotFoundException se non trovato
@@ -34,25 +35,24 @@ public interface GameService {
 
     /**
      * Recupera tutti i giochi presenti.
-     * 
+     *
      * @return lista di giochi
      */
     List<GameResponseDTO> getAllGames();
 
     /**
      * Aggiorna un gioco esistente.
-     * 
-     * @param id ID del gioco
-     * @param gameRequestDTO nuovi dati
+     *
+     * @param id            ID del gioco
+     * @param gameUpdateDTO nuovi dati
      * @return gioco aggiornato
      * @throws ResourceNotFoundException se non trovato
      */
     GameResponseDTO updateGame(UUID id, GameUpdateDTO gameUpdateDTO);
 
-
     /**
      * Elimina un gioco esistente.
-     * 
+     *
      * @param id ID del gioco
      * @throws ResourceNotFoundException se non trovato
      */
@@ -60,7 +60,7 @@ public interface GameService {
 
     /**
      * Cerca giochi contenenti una parte del titolo (case-insensitive).
-     * 
+     *
      * @param title stringa da cercare
      * @return lista di giochi trovati
      */
@@ -68,7 +68,7 @@ public interface GameService {
 
     /**
      * Trova giochi associati a un tag.
-     * 
+     *
      * @param tagName nome del tag
      * @return lista di giochi
      */
@@ -76,7 +76,7 @@ public interface GameService {
 
     /**
      * Trova giochi sviluppati da uno specifico sviluppatore.
-     * 
+     *
      * @param developer nome dello sviluppatore
      * @return lista di giochi
      */
@@ -84,7 +84,7 @@ public interface GameService {
 
     /**
      * Trova giochi pubblicati da un editore specifico.
-     * 
+     *
      * @param publisher nome dell'editore
      * @return lista di giochi
      */

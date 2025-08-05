@@ -14,6 +14,10 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Gestisce gli errori di accesso negato (403) restituendo una risposta JSON
+ * personalizzata.
+ */
 @Component
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
@@ -21,8 +25,8 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
     @Override
     public void handle(HttpServletRequest request,
-                       HttpServletResponse response,
-                       AccessDeniedException ex) throws IOException, ServletException {
+            HttpServletResponse response,
+            AccessDeniedException ex) throws IOException, ServletException {
 
         ErrorResponseDTO error = new ErrorResponseDTO(
                 LocalDateTime.now(),
@@ -30,8 +34,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
                 HttpStatus.FORBIDDEN.getReasonPhrase(),
                 "Accesso negato",
                 List.of(ex.getMessage()),
-                request.getRequestURI()
-        );
+                request.getRequestURI());
 
         response.setStatus(HttpStatus.FORBIDDEN.value());
         response.setContentType("application/json");

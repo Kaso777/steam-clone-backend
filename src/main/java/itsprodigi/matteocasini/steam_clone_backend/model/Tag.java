@@ -20,7 +20,8 @@ public class Tag {
     private Set<Game> games = new HashSet<>();
 
     // Costruttori
-    public Tag() {}
+    public Tag() {
+    }
 
     public Tag(String name) {
         this.name = name;
@@ -54,8 +55,10 @@ public class Tag {
     // equals e hashCode basati su 'name' per garantire l’unicità logica
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Tag)) return false;
+        if (this == o)
+            return true;
+        if (!(o instanceof Tag))
+            return false;
         Tag tag = (Tag) o;
         return name != null && name.equals(tag.name);
     }

@@ -8,7 +8,8 @@ import org.springframework.stereotype.Service;
 
 /**
  * Servizio che implementa UserDetailsService per Spring Security.
- * Utilizzato per caricare i dettagli dell'utente a partire dallo username.
+ * Carica i dati dell'utente (necessari per l'autenticazione) partendo dallo
+ * username.
  */
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -20,18 +21,17 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     /**
-     * Carica un utente dal database dato lo username.
-     * Utilizzato da Spring Security durante il login.
+     * Carica l'utente dal database tramite lo username.
      *
      * @param username lo username dell'utente
-     * @return i dettagli dell'utente (implementazione di UserDetails)
+     * @return un oggetto che implementa UserDetails (necessario per
+     *         l'autenticazione)
      * @throws UsernameNotFoundException se l'utente non esiste
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository
                 .findByUsername(username)
-                .orElseThrow(() ->
-                        new UsernameNotFoundException("User not found with username: " + username));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
     }
 }

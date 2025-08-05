@@ -32,18 +32,12 @@ public class GameRequestDTO {
     @Size(max = 100, message = "L'editore non può superare i 100 caratteri.")
     private String publisher;
 
-    // Nuovo campo: lista dei nomi dei tag associati al gioco.
-    // Non è @NotNull o @NotBlank sulla lista stessa per permettere giochi senza
-    // tag,
-    // ma i singoli nomi all'interno della lista possono essere validati nel
-    // servizio.
     private List<String> tagNames;
 
-    // Costruttore senza argomenti (necessario per la deserializzazione JSON)
+    // Costruttori
     public GameRequestDTO() {
     }
 
-    // Costruttore con tutti gli argomenti
     public GameRequestDTO(String title, BigDecimal price, LocalDate releaseDate, String developer, String publisher,
             List<String> tagNames) {
         this.title = title;
@@ -54,7 +48,7 @@ public class GameRequestDTO {
         this.tagNames = tagNames;
     }
 
-    // --- Getter ---
+    // Getters
     public String getTitle() {
         return title;
     }
@@ -79,7 +73,7 @@ public class GameRequestDTO {
         return tagNames;
     }
 
-    // --- Setter ---
+    // Setters
     public void setTitle(String title) {
         this.title = title;
     }
