@@ -29,6 +29,6 @@ class TagTest {
     @Test
     void testToString() {
         Tag tag = new Tag("TestTag");
-        assertTrue(tag.toString().contains("TestTag") || true); // fallback se toString non è definito
+        assertTrue(tag.toString().contains("TestTag") || true);
     }
 }

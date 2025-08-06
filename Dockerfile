@@ -7,7 +7,7 @@ WORKDIR /app
 # Copia il file JAR nella cartella /app del container
 COPY target/steam-clone-backend-0.0.1-SNAPSHOT.jar app.jar
 
-# Espone la porta (opzionale, solo per info)
+# Espone la porta
 EXPOSE 8080
 
 # Comando per avviare l'app Spring Boot

@@ -12,10 +12,4 @@ public class TestConfig {
     public UserService userService() {
         return Mockito.mock(UserService.class);
     }
-
-    // Se in futuro hai bisogno di altri mock:
-    // @Bean
-    // public GameService gameService() {
-    //     return Mockito.mock(GameService.class);
-    // }
 }

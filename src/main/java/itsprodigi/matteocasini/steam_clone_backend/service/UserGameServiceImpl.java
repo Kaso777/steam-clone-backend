@@ -17,20 +17,23 @@ public class UserGameServiceImpl implements UserGameService {
     private final UserGameRepository userGameRepository;
     private final UserRepository userRepository;
     private final GameRepository gameRepository;
-    private final UserService userService; // ✅ aggiunto
+    private final UserService userService;
 
     @Autowired
     public UserGameServiceImpl(UserGameRepository userGameRepository,
-                                UserRepository userRepository,
-                                GameRepository gameRepository,
-                                UserService userService) { // ✅ aggiunto
+            UserRepository userRepository,
+            GameRepository gameRepository,
+            UserService userService) {
         this.userGameRepository = userGameRepository;
         this.userRepository = userRepository;
         this.gameRepository = gameRepository;
-        this.userService = userService; // ✅ aggiunto
+        this.userService = userService;
     }
 
-    // ✅ Metodo di controllo accesso
+    /**
+     * Verifica se l'utente autenticato ha accesso alla libreria specificata.
+     * Consente l'accesso solo se l'utente è se stesso o un amministratore.
+     */
     private void checkAccess(UUID targetUserId) {
         User currentUser = userService.getAuthenticatedUser();
         boolean isSelf = currentUser.getId().equals(targetUserId);
@@ -41,10 +44,14 @@ public class UserGameServiceImpl implements UserGameService {
         }
     }
 
+    /**
+     * Aggiunge un gioco alla libreria di un utente.
+     * Lancia un'eccezione se il gioco è già presente.
+     */
     @Override
     @Transactional
     public UserGameResponseDTO addGameToUserLibrary(UserGameRequestDTO dto) {
-        checkAccess(dto.getUserUuid()); // ✅ controllo
+        checkAccess(dto.getUserUuid());
 
         User user = userRepository.findById(dto.getUserUuid())
                 .orElseThrow(() -> new RuntimeException("Utente non trovato: " + dto.getUserUuid()));
@@ -54,25 +61,31 @@ public class UserGameServiceImpl implements UserGameService {
 
         UserGameId id = new UserGameId(user.getId(), game.getId());
         if (userGameRepository.existsById(id)) {
-    throw new GameAlreadyInLibraryException("Il gioco è già nella libreria dell'utente.");
-}
-
+            throw new GameAlreadyInLibraryException("Il gioco è già nella libreria dell'utente.");
+        }
 
         UserGame userGame = new UserGame(user, game, dto.getPurchaseDate(), dto.getPlaytimeHours());
         return convertToUserGameResponseDto(userGameRepository.save(userGame));
     }
 
+    /**
+     * Recupera un'associazione utente-gioco specifica.
+     * Non attualmente utilizzato, ma potenzialmente utile.
+     */
     @Override
     public Optional<UserGameResponseDTO> getUserGameByIds(UUID userUuid, UUID gameUuid) {
-        checkAccess(userUuid); // ✅ controllo
+        checkAccess(userUuid);
         return userGameRepository.findById(new UserGameId(userUuid, gameUuid))
                 .map(this::convertToUserGameResponseDto);
     }
 
+    /**
+     * Recupera la libreria di giochi di un determinato utente.
+     */
     @Override
     @Transactional(readOnly = true)
     public UserLibraryResponseDTO getUserLibrary(UUID userUuid) {
-        checkAccess(userUuid); // ✅ controllo
+        checkAccess(userUuid);
 
         Optional<User> userOpt = userRepository.findById(userUuid);
         if (userOpt.isEmpty()) {
@@ -83,10 +96,13 @@ public class UserGameServiceImpl implements UserGameService {
         return new UserLibraryResponseDTO(userOpt.get(), userGames);
     }
 
+    /**
+     * Aggiorna le informazioni di un gioco nella libreria di un utente.
+     */
     @Override
     @Transactional
     public UserGameResponseDTO updateUserGame(UUID userUuid, UUID gameUuid, UserGameRequestDTO dto) {
-        checkAccess(userUuid); // ✅ controllo
+        checkAccess(userUuid);
 
         UserGame userGame = userGameRepository.findById(new UserGameId(userUuid, gameUuid))
                 .orElseThrow(() -> new RuntimeException(
@@ -98,10 +114,13 @@ public class UserGameServiceImpl implements UserGameService {
         return convertToUserGameResponseDto(userGameRepository.save(userGame));
     }
 
+    /**
+     * Rimuove un gioco dalla libreria di un utente.
+     */
     @Override
     @Transactional
     public void removeGameFromUserLibrary(UUID userUuid, UUID gameUuid) {
-        checkAccess(userUuid); // ✅ controllo
+        checkAccess(userUuid);
 
         UserGameId id = new UserGameId(userUuid, gameUuid);
         if (!userGameRepository.existsById(id)) {
@@ -110,7 +129,11 @@ public class UserGameServiceImpl implements UserGameService {
         userGameRepository.deleteById(id);
     }
 
-    //forse da qui è tutto commentabile
+    /**
+     * Recupera tutte le associazioni utente-gioco presenti nel sistema.
+     * Non attualmente esposto come endpoint pubblico; utile per uso interno o per
+     * amministratori.
+     */
     @Override
     public List<UserGameResponseDTO> getAllUserGames() {
         return userGameRepository.findAll().stream()
@@ -118,6 +141,9 @@ public class UserGameServiceImpl implements UserGameService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Converte un'associazione UserGame in un DTO di risposta.
+     */
     private UserGameResponseDTO convertToUserGameResponseDto(UserGame userGame) {
         return new UserGameResponseDTO(
                 new UserResponseDTO(userGame.getUser()),
@@ -127,11 +153,14 @@ public class UserGameServiceImpl implements UserGameService {
     }
 
     /*
-    private LibraryGameItemDTO convertToLibraryItemDto(UserGame userGame) {
-        return new LibraryGameItemDTO(
-                new GameResponseDTO(userGame.getGame()),
-                userGame.getPurchaseDate(),
-                userGame.getPlaytimeHours());
-    }
-                 */
+     * Metodo per la conversione alternativa in un oggetto semplificato della libreria.
+     * Non attualmente utilizzato, ma potenzialmente utile.
+     *
+     * private LibraryGameItemDTO convertToLibraryItemDto(UserGame userGame) {
+     *     return new LibraryGameItemDTO(
+     *         new GameResponseDTO(userGame.getGame()),
+     *         userGame.getPurchaseDate(),
+     *         userGame.getPlaytimeHours());
+     * }
+     */
 }

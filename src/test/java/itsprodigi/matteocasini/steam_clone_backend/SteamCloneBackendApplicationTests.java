@@ -9,5 +9,4 @@ class SteamCloneBackendApplicationTests {
 	@Test
 	void contextLoads() {
 	}
-
 }

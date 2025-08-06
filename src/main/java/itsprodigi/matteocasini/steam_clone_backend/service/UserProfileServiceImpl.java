@@ -31,6 +31,9 @@ public class UserProfileServiceImpl implements UserProfileService {
         this.userRepository = userRepository;
     }
 
+    /**
+     * Recupera un profilo utente tramite l'ID utente/profilo.
+     */
     @Override
     public UserProfileResponseDTO getUserProfileById(UUID userId) {
         UserProfile profile = userProfileRepository.findById(userId)
@@ -43,6 +46,10 @@ public class UserProfileServiceImpl implements UserProfileService {
                 profile.getBio());
     }
 
+    /**
+     * Crea un nuovo profilo o aggiorna un profilo esistente associato a un utente.
+     * Validazioni di base sui dati (es. nickname non vuoto).
+     */
     @Override
     @Transactional
     public UserProfileResponseDTO createOrUpdateUserProfile(UUID userId,
@@ -79,6 +86,10 @@ public class UserProfileServiceImpl implements UserProfileService {
         return convertToResponseDto(savedProfile);
     }
 
+    /**
+     * Elimina un profilo utente dato l'ID.
+     * La cancellazione avviene rimuovendo il riferimento dall'entità User.
+     */
     @Override
     @Transactional
     public void deleteUserProfile(UUID userId) {
@@ -88,12 +99,13 @@ public class UserProfileServiceImpl implements UserProfileService {
         userProfileRepository.findById(userId)
                 .orElseThrow(() -> new UserProfileNotFoundException(userId));
 
-        user.setUserProfile(null); // orphanRemoval = true gestisce la delete
+        user.setUserProfile(null); // orphanRemoval=true si occupa di eliminare il profilo
         userRepository.save(user);
     }
 
-    // --- Metodi di mapping (Entity -> DTO) ---
-
+    /**
+     * Mappa un'entità UserProfile in un DTO di risposta.
+     */
     private UserProfileResponseDTO convertToResponseDto(UserProfile userProfile) {
         UserProfileResponseDTO dto = new UserProfileResponseDTO();
         dto.setUserId(userProfile.getId());
