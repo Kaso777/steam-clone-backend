@@ -24,6 +24,23 @@ Per compilare il progetto, eseguire i test e avviare l'applicazione, assicurarsi
 
 ## 🚀 Setup e Avvio dell'Applicazione
 
+### Compilare il progetto e generare il file JAR
+1. **Aprire un terminale** nella directory principale del progetto (`steam-clone-backend/`)
+2. **Eseguire il comando:**
+   
+   ```bash
+   ./mvnw clean package
+   # oppure, se Maven è installato globalmente
+   mvn clean package
+   ```
+   
+   Questo comando:
+   - Pulisce il progetto
+   - Compila il codice sorgente
+   - Esegue i test
+   - Genera un file JAR eseguibile nella cartella `target/`
+   - Il file JAR sarà chiamato `steam-clone-backend-0.0.1-SNAPSHOT.jar`
+
 ### Avvio con Docker Compose
 
 Seguire questi passaggi per avviare sia il database MySQL che l'applicazione Spring Boot, entrambi come container Docker.
@@ -98,7 +115,7 @@ Lo script `init.sql` popola il database con i seguenti utenti di test:
 | **Amministratore** | `admin` | `adminpass` | `11111111-1111-1111-1111-111111111111` |
 | **Utente Standard** | `user` | `userpass` | `22222222-2222-2222-2222-222222222222` |
 
-> **Nota:** Nelle variabili della collection sono salvate alcune di queste credenziali per semplificare l'utilizzo.
+> **Nota:** Nelle variabili della collection sono salvate alcune di queste credenziali per semplificare l'utilizzo e sono già pronte le voci per i token JWT da inserire quando si effettua il login.
 
 ## ✅ Esecuzione dei Test Unitari e Report Jacoco
 
@@ -109,7 +126,9 @@ Per eseguire tutti i test del progetto e generare il report di copertura del cod
 2. **Eseguire il comando:**
    
    ```bash
-   ./mvnw clean install
+   ./mvnw clean verify
+   # oppure
+   mvn clean verify
    ```
    
    Questo comando:
