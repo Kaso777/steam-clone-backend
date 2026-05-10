@@ -54,7 +54,7 @@ public class UserUpdateDTO {
         return "UserUpdateDTO{" +
                 "username='" + username + '\'' +
                 ", email='" + email + '\'' +
-                ", password='" + password + '\'' +
+                ", password='[PROTECTED]'" +
                 ", role='" + role + '\'' +
                 '}';
     }

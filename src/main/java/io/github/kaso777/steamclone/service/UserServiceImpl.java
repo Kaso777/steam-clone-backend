@@ -85,19 +85,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponseDTO getUserById(UUID id) {
         User authenticatedUser = getAuthenticatedUser();
-        System.out.println(">> getUserById called by: " + authenticatedUser.getUsername() + " (role: "
-                + authenticatedUser.getRole() + ")");
-        System.out.println(">> Target user ID requested: " + id);
 
         if (!authenticatedUser.getRole().equals(Role.ROLE_ADMIN) && !authenticatedUser.getId().equals(id)) {
-            System.out.println(">> Access denied: " + authenticatedUser.getUsername() + " tried to access ID: " + id);
             throw new AccessDeniedException("Non hai i permessi per eseguire questa azione");
         }
 
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
-
-        System.out.println(">> Found user in DB: " + user.getUsername() + " (ID: " + user.getId() + ")");
 
         return convertToResponseDto(user);
     }
