@@ -1,0 +1,215 @@
+package io.github.kaso777.steamclone.service;
+
+import io.github.kaso777.steamclone.model.Game;
+import io.github.kaso777.steamclone.model.Tag;
+import io.github.kaso777.steamclone.repository.GameRepository;
+import io.github.kaso777.steamclone.repository.TagRepository;
+import io.github.kaso777.steamclone.dto.GameRequestDTO;
+import io.github.kaso777.steamclone.dto.GameResponseDTO;
+import io.github.kaso777.steamclone.dto.GameUpdateDTO;
+import io.github.kaso777.steamclone.dto.TagDTO;
+import io.github.kaso777.steamclone.exception.ResourceNotFoundException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+/**
+ * Implementazione dell'interfaccia GameService.
+ * Gestisce la logica di business relativa ai giochi e alle associazioni con i
+ * tag.
+ */
+@Service
+public class GameServiceImpl implements GameService {
+
+    private final GameRepository gameRepository;
+    private final TagRepository tagRepository;
+
+    @Autowired
+    public GameServiceImpl(GameRepository gameRepository, TagRepository tagRepository) {
+        this.gameRepository = gameRepository;
+        this.tagRepository = tagRepository;
+    }
+
+    /**
+     * Crea un nuovo gioco e lo salva nel database.
+     * Se il titolo Ã¨ giÃ  presente, solleva un'eccezione.
+     */
+    @Override
+    @Transactional
+    public GameResponseDTO createGame(GameRequestDTO gameRequestDTO) {
+        if (gameRepository.findByTitle(gameRequestDTO.getTitle()).isPresent()) {
+            throw new RuntimeException("Un gioco con il titolo '" + gameRequestDTO.getTitle() + "' esiste giÃ .");
+        }
+
+        Game game = new Game();
+        game.setTitle(gameRequestDTO.getTitle());
+        game.setPrice(gameRequestDTO.getPrice());
+        game.setReleaseDate(gameRequestDTO.getReleaseDate());
+        game.setDeveloper(gameRequestDTO.getDeveloper());
+        game.setPublisher(gameRequestDTO.getPublisher());
+
+        // Associa i tag esistenti o ne crea di nuovi
+        if (gameRequestDTO.getTagNames() != null && !gameRequestDTO.getTagNames().isEmpty()) {
+            Set<Tag> tags = new HashSet<>();
+            for (String tagName : gameRequestDTO.getTagNames()) {
+                Tag tag = tagRepository.findByNameIgnoreCase(tagName)
+                        .orElseGet(() -> tagRepository.save(new Tag(tagName)));
+                tags.add(tag);
+            }
+            game.setTags(tags);
+        }
+
+        Game savedGame = gameRepository.save(game);
+        return convertToResponseDto(savedGame);
+    }
+
+    /**
+     * Recupera un gioco per ID e lo converte in DTO.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<GameResponseDTO> getGameById(UUID id) {
+        return gameRepository.findByIdWithTags(id)
+                .map(this::convertToResponseDto);
+    }
+
+    /**
+     * Restituisce la lista completa dei giochi.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<GameResponseDTO> getAllGames() {
+        return gameRepository.findAllWithTags().stream()
+                .map(this::convertToResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Aggiorna un gioco esistente con i dati forniti.
+     * Se un altro gioco ha lo stesso titolo, solleva un'eccezione.
+     */
+    @Override
+    @Transactional
+    public GameResponseDTO updateGame(UUID id, GameUpdateDTO dto) {
+        Game game = gameRepository.findByIdWithTags(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Gioco non trovato con ID: " + id));
+
+        // Controllo per titolo duplicato, se lo sta cambiando
+        if (dto.getTitle() != null && !dto.getTitle().isBlank()) {
+            gameRepository.findByTitle(dto.getTitle())
+                    .ifPresent(existingGame -> {
+                        if (!existingGame.getId().equals(id)) {
+                            throw new RuntimeException(
+                                    "Un altro gioco con il titolo '" + dto.getTitle() + "' esiste giÃ .");
+                        }
+                    });
+            game.setTitle(dto.getTitle());
+        }
+
+        if (dto.getPrice() != null) {
+            game.setPrice(dto.getPrice());
+        }
+
+        if (dto.getReleaseDate() != null) {
+            game.setReleaseDate(dto.getReleaseDate());
+        }
+
+        if (dto.getDeveloper() != null && !dto.getDeveloper().isBlank()) {
+            game.setDeveloper(dto.getDeveloper());
+        }
+
+        if (dto.getPublisher() != null && !dto.getPublisher().isBlank()) {
+            game.setPublisher(dto.getPublisher());
+        }
+
+        if (dto.getTagNames() != null) {
+            game.getTags().clear();
+            for (String tagName : dto.getTagNames()) {
+                Tag tag = tagRepository.findByNameIgnoreCase(tagName)
+                        .orElseGet(() -> tagRepository.save(new Tag(tagName)));
+                game.addTag(tag);
+            }
+        }
+
+        Game updatedGame = gameRepository.save(game);
+        return convertToResponseDto(updatedGame);
+    }
+
+    /**
+     * Elimina un gioco tramite ID.
+     */
+    @Override
+    @Transactional
+    public void deleteGame(UUID id) {
+        if (!gameRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Gioco non trovato con ID: " + id);
+        }
+        gameRepository.deleteById(id);
+    }
+
+    /**
+     * Cerca giochi il cui titolo contiene una certa stringa (case-insensitive).
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<GameResponseDTO> findGamesByTitle(String title) {
+        return gameRepository.findByTitleContainingIgnoreCase(title).stream()
+                .map(this::convertToResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Cerca giochi associati a un determinato tag.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<GameResponseDTO> findGamesByTagName(String tagName) {
+        return gameRepository.findByTags_NameIgnoreCase(tagName).stream()
+                .map(this::convertToResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Cerca giochi per sviluppatore (case-insensitive).
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<GameResponseDTO> findGamesByDeveloper(String developer) {
+        return gameRepository.findByDeveloperIgnoreCase(developer).stream()
+                .map(this::convertToResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Cerca giochi per editore (case-insensitive).
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<GameResponseDTO> findGamesByPublisher(String publisher) {
+        return gameRepository.findByPublisherIgnoreCase(publisher).stream()
+                .map(this::convertToResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Converte un'entitÃ  Game in un DTO di risposta.
+     */
+    private GameResponseDTO convertToResponseDto(Game game) {
+        List<TagDTO> tagDtos = game.getTags().stream()
+                .map(tag -> new TagDTO(tag.getId(), tag.getName()))
+                .collect(Collectors.toList());
+
+        return new GameResponseDTO(
+                game.getId(),
+                game.getTitle(),
+                game.getPrice(),
+                game.getReleaseDate(),
+                game.getDeveloper(),
+                game.getPublisher(),
+                tagDtos);
+    }
+}
