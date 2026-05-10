@@ -71,6 +71,8 @@ Start MySQL and the Spring Boot application:
 docker compose up --build -d
 ```
 
+The Dockerfile builds the application inside the image, so a local `target/` directory is not required before running this command.
+
 The API will be available at:
 
 ```text
