@@ -6,20 +6,20 @@ import jakarta.validation.constraints.Size;
 
 public class UserRegistrationDTO {
 
-    @NotBlank(message = "Lo username non puÃ² essere vuoto")
+    @NotBlank(message = "Lo username non puo essere vuoto")
     @Size(min = 3, max = 50, message = "Lo username deve avere tra 3 e 50 caratteri")
     private String username;
 
-    @NotBlank(message = "L'email non puÃ² essere vuota")
+    @NotBlank(message = "L'email non puo essere vuota")
     @Email(message = "Formato email non valido")
-    @Size(max = 100, message = "L'email non puÃ² superare i 100 caratteri")
+    @Size(max = 100, message = "L'email non puo superare i 100 caratteri")
     private String email;
 
-    @NotBlank(message = "La password non puÃ² essere vuota")
+    @NotBlank(message = "La password non puo essere vuota")
     @Size(min = 6, message = "La password deve avere almeno 6 caratteri")
     private String password;
 
-    @NotBlank(message = "Il ruolo non puÃ² essere vuoto o composto solo da spazi.")
+    @NotBlank(message = "Il ruolo non puo essere vuoto o composto solo da spazi.")
     private String role;
 
     public UserRegistrationDTO() {

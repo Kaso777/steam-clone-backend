@@ -12,24 +12,24 @@ import java.util.List;
 
 public class GameRequestDTO {
 
-    @NotBlank(message = "Il titolo non puÃ² essere vuoto o composto solo da spazi.")
-    @Size(max = 100, message = "Il titolo non puÃ² superare i 100 caratteri.")
+    @NotBlank(message = "Il titolo non puo essere vuoto o composto solo da spazi.")
+    @Size(max = 100, message = "Il titolo non puo superare i 100 caratteri.")
     private String title;
 
-    @NotNull(message = "Il prezzo non puÃ² essere nullo.")
-    @DecimalMin(value = "0.00", inclusive = true, message = "Il prezzo non puÃ² essere negativo.")
+    @NotNull(message = "Il prezzo non puo essere nullo.")
+    @DecimalMin(value = "0.00", inclusive = true, message = "Il prezzo non puo essere negativo.")
     private BigDecimal price;
 
-    @NotNull(message = "La data di rilascio non puÃ² essere nulla.")
-    @PastOrPresent(message = "La data di rilascio non puÃ² essere nel futuro.")
+    @NotNull(message = "La data di rilascio non puo essere nulla.")
+    @PastOrPresent(message = "La data di rilascio non puo essere nel futuro.")
     private LocalDate releaseDate;
 
-    @NotBlank(message = "Lo sviluppatore non puÃ² essere vuoto o composto solo da spazi.")
-    @Size(max = 100, message = "Lo sviluppatore non puÃ² superare i 100 caratteri.")
+    @NotBlank(message = "Lo sviluppatore non puo essere vuoto o composto solo da spazi.")
+    @Size(max = 100, message = "Lo sviluppatore non puo superare i 100 caratteri.")
     private String developer;
 
-    @NotBlank(message = "L'editore non puÃ² essere vuoto o composto solo da spazi.")
-    @Size(max = 100, message = "L'editore non puÃ² superare i 100 caratteri.")
+    @NotBlank(message = "L'editore non puo essere vuoto o composto solo da spazi.")
+    @Size(max = 100, message = "L'editore non puo superare i 100 caratteri.")
     private String publisher;
 
     private List<String> tagNames;

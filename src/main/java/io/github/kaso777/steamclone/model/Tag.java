@@ -52,7 +52,7 @@ public class Tag {
         this.games = games;
     }
 
-    // equals e hashCode basati su 'name' per garantire lâ€™unicitÃ  logica
+    // equals e hashCode basati su 'name' per garantire l'unicita logica
     @Override
     public boolean equals(Object o) {
         if (this == o)

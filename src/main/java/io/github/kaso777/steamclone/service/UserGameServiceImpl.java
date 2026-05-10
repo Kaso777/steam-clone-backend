@@ -32,7 +32,7 @@ public class UserGameServiceImpl implements UserGameService {
 
     /**
      * Verifica se l'utente autenticato ha accesso alla libreria specificata.
-     * Consente l'accesso solo se l'utente Ã¨ se stesso o un amministratore.
+     * Consente l'accesso solo se l'utente e se stesso o un amministratore.
      */
     private void checkAccess(UUID targetUserId) {
         User currentUser = userService.getAuthenticatedUser();
@@ -46,7 +46,7 @@ public class UserGameServiceImpl implements UserGameService {
 
     /**
      * Aggiunge un gioco alla libreria di un utente.
-     * Lancia un'eccezione se il gioco Ã¨ giÃ  presente.
+     * Lancia un'eccezione se il gioco e gia presente.
      */
     @Override
     @Transactional
@@ -61,7 +61,7 @@ public class UserGameServiceImpl implements UserGameService {
 
         UserGameId id = new UserGameId(user.getId(), game.getId());
         if (userGameRepository.existsById(id)) {
-            throw new GameAlreadyInLibraryException("Il gioco Ã¨ giÃ  nella libreria dell'utente.");
+            throw new GameAlreadyInLibraryException("Il gioco e gia nella libreria dell'utente.");
         }
 
         UserGame userGame = new UserGame(user, game, dto.getPurchaseDate(), dto.getPlaytimeHours());

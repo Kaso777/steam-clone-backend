@@ -104,7 +104,7 @@ public class GlobalExceptionHandler {
         public ResponseEntity<ErrorResponseDTO> handleGenericException(Exception ex, WebRequest request) {
                 return buildErrorResponse(
                                 HttpStatus.INTERNAL_SERVER_ERROR,
-                                "Si Ã¨ verificato un errore interno al server",
+                                "Si e verificato un errore interno al server",
                                 List.of(ex.getMessage()),
                                 request);
         }
@@ -126,7 +126,7 @@ public class GlobalExceptionHandler {
                         WebRequest request) {
                 return buildErrorResponse(
                                 HttpStatus.CONFLICT,
-                                "Gioco giÃ  presente nella libreria",
+                                "Gioco gia presente nella libreria",
                                 List.of(ex.getMessage()),
                                 request);
         }

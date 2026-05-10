@@ -18,7 +18,7 @@ public class GameResponseDTO {
 
     /**
      * Lista dei tag associati al gioco.
-     * Ogni tag Ã¨ rappresentato come un oggetto TagDTO (contenente id e nome).
+     * Ogni tag e rappresentato come un oggetto TagDTO (contenente id e nome).
      */
     private List<TagDTO> tags;
 
@@ -27,10 +27,10 @@ public class GameResponseDTO {
     }
 
     /**
-     * Costruttore che converte un'entitÃ  Game in un GameResponseDTO.
+     * Costruttore che converte un'entita Game in un GameResponseDTO.
      * Usato solitamente nei Service per restituire i dati al client.
      *
-     * @param game L'entitÃ  Game da cui estrarre i dati.
+     * @param game L'entita Game da cui estrarre i dati.
      */
     public GameResponseDTO(Game game) {
         this.id = game.getId();
@@ -40,7 +40,7 @@ public class GameResponseDTO {
         this.developer = game.getDeveloper();
         this.publisher = game.getPublisher();
 
-        // Conversione della lista di Tag (entitÃ ) in lista di TagDTO
+        // Conversione della lista di Tag (entita) in lista di TagDTO
         if (game.getTags() != null) {
             this.tags = game.getTags().stream()
                     .map(tag -> new TagDTO(tag.getId(), tag.getName()))

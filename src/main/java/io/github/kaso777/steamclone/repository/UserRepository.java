@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Repository per l'entitÃ  User.
+ * Repository per l'entita User.
  * Fornisce metodi CRUD e query personalizzate per la gestione degli utenti.
  */
 @Repository

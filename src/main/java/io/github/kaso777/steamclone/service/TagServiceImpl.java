@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 /**
  * Implementazione del servizio per la gestione dei Tag.
- * Gestisce operazioni CRUD e mappatura tra entitÃ  Tag e DTO.
+ * Gestisce operazioni CRUD e mappatura tra entita Tag e DTO.
  */
 @Service
 public class TagServiceImpl implements TagService {
@@ -115,9 +115,9 @@ public class TagServiceImpl implements TagService {
     }
 
     /**
-     * Converte un'entitÃ  Tag in un DTO.
+     * Converte un'entita Tag in un DTO.
      *
-     * @param tag entitÃ  Tag
+     * @param tag entita Tag
      * @return TagDTO corrispondente
      */
     private TagDTO convertToDto(Tag tag) {

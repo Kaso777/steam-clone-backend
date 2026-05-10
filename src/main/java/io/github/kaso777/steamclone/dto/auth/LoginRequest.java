@@ -8,11 +8,11 @@ import jakarta.validation.constraints.Size;
  */
 public class LoginRequest {
 
-    @NotBlank(message = "Lo username non puÃ² essere vuoto")
+    @NotBlank(message = "Lo username non puo essere vuoto")
     @Size(min = 3, max = 50, message = "Lo username deve contenere tra 3 e 50 caratteri")
     private String username;
 
-    @NotBlank(message = "La password non puÃ² essere vuota")
+    @NotBlank(message = "La password non puo essere vuota")
     @Size(min = 6, message = "La password deve contenere almeno 6 caratteri")
     private String password;
 

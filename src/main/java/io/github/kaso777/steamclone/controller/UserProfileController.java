@@ -55,7 +55,7 @@ public class UserProfileController {
         return ResponseEntity.ok(updatedProfile);
     }
 
-    // Metodo non utilizzato: la cancellazione del profilo Ã¨ gestita dal controller utente.
+    // Metodo non utilizzato: la cancellazione del profilo e gestita dal controller utente.
     /*
     @DeleteMapping
     public ResponseEntity<Void> deleteUserProfile(@PathVariable UUID userId) {

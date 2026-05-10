@@ -69,7 +69,7 @@ public class UserProfileServiceImpl implements UserProfileService {
         if (profileDetailsRequestDTO.getNickname().isPresent()) {
             String nickname = profileDetailsRequestDTO.getNickname().get();
             if (nickname.isBlank()) {
-                throw new InvalidUserProfileDataException("Il nickname non puÃ² essere vuoto o solo spazi.");
+                throw new InvalidUserProfileDataException("Il nickname non puo essere vuoto o solo spazi.");
             }
             userProfile.setNickname(nickname);
         }
@@ -88,7 +88,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     /**
      * Elimina un profilo utente dato l'ID.
-     * La cancellazione avviene rimuovendo il riferimento dall'entitÃ  User.
+     * La cancellazione avviene rimuovendo il riferimento dall'entita User.
      */
     @Override
     @Transactional
@@ -104,7 +104,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     }
 
     /**
-     * Mappa un'entitÃ  UserProfile in un DTO di risposta.
+     * Mappa un'entita UserProfile in un DTO di risposta.
      */
     private UserProfileResponseDTO convertToResponseDto(UserProfile userProfile) {
         UserProfileResponseDTO dto = new UserProfileResponseDTO();

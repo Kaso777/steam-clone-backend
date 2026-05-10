@@ -8,5 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface UserProfileRepository extends JpaRepository<UserProfile, UUID> {
-    // Metodi standard come findById, save, deleteById sono giÃ  ereditati da JpaRepository
+    // Metodi standard come findById, save, deleteById sono gia ereditati da JpaRepository
 }

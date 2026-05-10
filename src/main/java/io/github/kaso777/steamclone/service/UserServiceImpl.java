@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Recupera l'utente attualmente autenticato dal contesto di sicurezza.
-     * Lancia eccezione se nessun utente Ã¨ autenticato.
+     * Lancia eccezione se nessun utente e autenticato.
      */
     public User getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -61,11 +61,11 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponseDTO registerUser(UserRegistrationDTO dto) {
         if (userRepository.existsByUsername(dto.getUsername())) {
-            throw new DuplicateUsernameException("Username '" + dto.getUsername() + "' giÃ  in uso.");
+            throw new DuplicateUsernameException("Username '" + dto.getUsername() + "' gia in uso.");
         }
 
         if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new DuplicateEmailException("Email '" + dto.getEmail() + "' giÃ  in uso.");
+            throw new DuplicateEmailException("Email '" + dto.getEmail() + "' gia in uso.");
         }
 
         if (dto.getPassword() == null || dto.getPassword().length() < 6) {
@@ -123,7 +123,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Aggiorna i dati di un utente esistente.
-     * ADMIN puÃ² modificare tutti i campi; USER solo email e password.
+     * ADMIN puo modificare tutti i campi; USER solo email e password.
      * Controllo autorizzazione: solo ADMIN o l'utente stesso.
      */
     @Override
@@ -165,7 +165,7 @@ public class UserServiceImpl implements UserService {
             }
 
         } else {
-            // USER puÃ² modificare solo email e password
+            // USER puo modificare solo email e password
             if (dto.getEmail() != null && !dto.getEmail().isBlank() && !user.getEmail().equals(dto.getEmail())) {
                 validateDuplicateEmail(dto.getEmail(), id);
                 user.setEmail(dto.getEmail());
@@ -198,7 +198,7 @@ public class UserServiceImpl implements UserService {
     private void validateDuplicateUsername(String username, UUID id) {
         userRepository.findByUsername(username).ifPresent(existingUser -> {
             if (!existingUser.getId().equals(id)) {
-                throw new DuplicateUsernameException("Username '" + username + "' giÃ  in uso.");
+                throw new DuplicateUsernameException("Username '" + username + "' gia in uso.");
             }
         });
     }
@@ -206,7 +206,7 @@ public class UserServiceImpl implements UserService {
     private void validateDuplicateEmail(String email, UUID id) {
         userRepository.findByEmail(email).ifPresent(existingUser -> {
             if (!existingUser.getId().equals(id)) {
-                throw new DuplicateEmailException("Email '" + email + "' giÃ  in uso.");
+                throw new DuplicateEmailException("Email '" + email + "' gia in uso.");
             }
         });
     }

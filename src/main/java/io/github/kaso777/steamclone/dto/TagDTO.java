@@ -7,7 +7,7 @@ public class TagDTO {
 
     private Long id;
 
-    @NotBlank(message = "Il nome del tag non puÃ² essere vuoto o composto solo da spazi.")
+    @NotBlank(message = "Il nome del tag non puo essere vuoto o composto solo da spazi.")
     @Size(min = 1, max = 50, message = "Il nome del tag deve contenere tra 1 e 50 caratteri.")
     private String name;
 

@@ -19,7 +19,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Classe di utilitÃ  per la gestione dei JSON Web Token (JWT).
+ * Classe di utilita per la gestione dei JSON Web Token (JWT).
  * Si occupa di generazione, validazione e decodifica dei token.
  */
 @Component
@@ -89,7 +89,7 @@ public class JwtUtil {
     }
 
     /**
-     * Verifica se un token Ã¨ valido per l'utente specificato.
+     * Verifica se un token e valido per l'utente specificato.
      */
     public boolean validateToken(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
@@ -97,7 +97,7 @@ public class JwtUtil {
     }
 
     /**
-     * Verifica se un token Ã¨ scaduto.
+     * Verifica se un token e scaduto.
      */
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());

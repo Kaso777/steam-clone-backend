@@ -75,7 +75,7 @@ class UserServiceImplTest {
         when(userRepository.existsByUsername("existing")).thenReturn(true);
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> userService.registerUser(dto));
-        assertEquals("Username 'existing' giÃ  in uso.", ex.getMessage());
+        assertEquals("Username 'existing' gia in uso.", ex.getMessage());
     }
 
     @Test
@@ -86,7 +86,7 @@ class UserServiceImplTest {
         when(userRepository.existsByEmail("taken@example.com")).thenReturn(true);
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> userService.registerUser(dto));
-        assertEquals("Email 'taken@example.com' giÃ  in uso.", ex.getMessage());
+        assertEquals("Email 'taken@example.com' gia in uso.", ex.getMessage());
     }
 
     @Test

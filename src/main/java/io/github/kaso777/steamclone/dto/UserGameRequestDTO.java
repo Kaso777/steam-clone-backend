@@ -9,14 +9,14 @@ import java.util.UUID;
 
 public class UserGameRequestDTO {
 
-    @NotNull(message = "L'UUID dell'utente non puÃ² essere nullo")
+    @NotNull(message = "L'UUID dell'utente non puo essere nullo")
     private UUID userUuid;
 
-    @NotNull(message = "L'UUID del gioco non puÃ² essere nullo")
+    @NotNull(message = "L'UUID del gioco non puo essere nullo")
     private UUID gameUuid;
 
-    @NotNull(message = "La data di acquisto non puÃ² essere nulla")
-    @PastOrPresent(message = "La data di acquisto non puÃ² essere nel futuro")
+    @NotNull(message = "La data di acquisto non puo essere nulla")
+    @PastOrPresent(message = "La data di acquisto non puo essere nel futuro")
     private LocalDate purchaseDate;
 
     @Min(value = 0, message = "Le ore giocate non possono essere negative.")

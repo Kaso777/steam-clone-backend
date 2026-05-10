@@ -36,13 +36,13 @@ public class GameServiceImpl implements GameService {
 
     /**
      * Crea un nuovo gioco e lo salva nel database.
-     * Se il titolo Ã¨ giÃ  presente, solleva un'eccezione.
+     * Se il titolo e gia presente, solleva un'eccezione.
      */
     @Override
     @Transactional
     public GameResponseDTO createGame(GameRequestDTO gameRequestDTO) {
         if (gameRepository.findByTitle(gameRequestDTO.getTitle()).isPresent()) {
-            throw new RuntimeException("Un gioco con il titolo '" + gameRequestDTO.getTitle() + "' esiste giÃ .");
+            throw new RuntimeException("Un gioco con il titolo '" + gameRequestDTO.getTitle() + "' esiste gia.");
         }
 
         Game game = new Game();
@@ -104,7 +104,7 @@ public class GameServiceImpl implements GameService {
                     .ifPresent(existingGame -> {
                         if (!existingGame.getId().equals(id)) {
                             throw new RuntimeException(
-                                    "Un altro gioco con il titolo '" + dto.getTitle() + "' esiste giÃ .");
+                                    "Un altro gioco con il titolo '" + dto.getTitle() + "' esiste gia.");
                         }
                     });
             game.setTitle(dto.getTitle());
@@ -196,7 +196,7 @@ public class GameServiceImpl implements GameService {
     }
 
     /**
-     * Converte un'entitÃ  Game in un DTO di risposta.
+     * Converte un'entita Game in un DTO di risposta.
      */
     private GameResponseDTO convertToResponseDto(Game game) {
         List<TagDTO> tagDtos = game.getTags().stream()
