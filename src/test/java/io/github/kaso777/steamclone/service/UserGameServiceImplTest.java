@@ -60,7 +60,6 @@ void setUp() {
     game.setId(gameId);
 
     requestDTO = new UserGameRequestDTO();
-    requestDTO.setUserUuid(userId);
     requestDTO.setGameUuid(gameId);
     requestDTO.setPurchaseDate(LocalDate.now());
     requestDTO.setPlaytimeHours(10);
@@ -76,7 +75,7 @@ void setUp() {
         when(userGameRepository.existsById(any())).thenReturn(false);
         when(userGameRepository.save(any())).thenReturn(userGame);
 
-        var result = userGameService.addGameToUserLibrary(requestDTO);
+        var result = userGameService.addGameToUserLibrary(userId, requestDTO);
 
         assertNotNull(result);
         assertEquals(userId, result.getUser().getId());

@@ -9,9 +9,6 @@ import java.util.UUID;
 
 public class UserGameRequestDTO {
 
-    @NotNull(message = "L'UUID dell'utente non puo essere nullo")
-    private UUID userUuid;
-
     @NotNull(message = "L'UUID del gioco non puo essere nullo")
     private UUID gameUuid;
 
@@ -25,15 +22,10 @@ public class UserGameRequestDTO {
     public UserGameRequestDTO() {
     }
 
-    public UserGameRequestDTO(UUID userUuid, UUID gameUuid, LocalDate purchaseDate, int playtimeHours) {
-        this.userUuid = userUuid;
+    public UserGameRequestDTO(UUID gameUuid, LocalDate purchaseDate, int playtimeHours) {
         this.gameUuid = gameUuid;
         this.purchaseDate = purchaseDate;
         this.playtimeHours = playtimeHours;
-    }
-
-    public UUID getUserUuid() {
-        return userUuid;
     }
 
     public UUID getGameUuid() {
@@ -46,10 +38,6 @@ public class UserGameRequestDTO {
 
     public int getPlaytimeHours() {
         return playtimeHours;
-    }
-
-    public void setUserUuid(UUID userUuid) {
-        this.userUuid = userUuid;
     }
 
     public void setGameUuid(UUID gameUuid) {
@@ -67,8 +55,7 @@ public class UserGameRequestDTO {
     @Override
     public String toString() {
         return "UserGameRequestDTO{" +
-                "userUuid=" + userUuid +
-                ", gameUuid=" + gameUuid +
+                "gameUuid=" + gameUuid +
                 ", purchaseDate=" + purchaseDate +
                 ", playtimeHours=" + playtimeHours +
                 '}';

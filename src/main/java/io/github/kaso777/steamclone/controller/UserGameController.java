@@ -31,8 +31,9 @@ public class UserGameController {
      * Aggiunge un gioco alla libreria di un utente.
      */
     @PostMapping("/users/{userUuid}/library/addgame")
-    public ResponseEntity<UserGameResponseDTO> addGameToUserLibrary(@Valid @RequestBody UserGameRequestDTO userGameRequestDTO) {
-        UserGameResponseDTO newUserGame = userGameService.addGameToUserLibrary(userGameRequestDTO);
+    public ResponseEntity<UserGameResponseDTO> addGameToUserLibrary(@PathVariable UUID userUuid,
+            @Valid @RequestBody UserGameRequestDTO userGameRequestDTO) {
+        UserGameResponseDTO newUserGame = userGameService.addGameToUserLibrary(userUuid, userGameRequestDTO);
         return new ResponseEntity<>(newUserGame, HttpStatus.CREATED);
     }
 

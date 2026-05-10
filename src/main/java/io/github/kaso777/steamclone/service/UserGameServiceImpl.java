@@ -2,6 +2,7 @@ package io.github.kaso777.steamclone.service;
 
 import io.github.kaso777.steamclone.dto.*;
 import io.github.kaso777.steamclone.exception.GameAlreadyInLibraryException;
+import io.github.kaso777.steamclone.exception.ResourceNotFoundException;
 import io.github.kaso777.steamclone.model.*;
 import io.github.kaso777.steamclone.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,14 +51,14 @@ public class UserGameServiceImpl implements UserGameService {
      */
     @Override
     @Transactional
-    public UserGameResponseDTO addGameToUserLibrary(UserGameRequestDTO dto) {
-        checkAccess(dto.getUserUuid());
+    public UserGameResponseDTO addGameToUserLibrary(UUID userUuid, UserGameRequestDTO dto) {
+        checkAccess(userUuid);
 
-        User user = userRepository.findById(dto.getUserUuid())
-                .orElseThrow(() -> new RuntimeException("Utente non trovato: " + dto.getUserUuid()));
+        User user = userRepository.findById(userUuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato con ID: " + userUuid));
 
         Game game = gameRepository.findById(dto.getGameUuid())
-                .orElseThrow(() -> new RuntimeException("Gioco non trovato: " + dto.getGameUuid()));
+                .orElseThrow(() -> new ResourceNotFoundException("Gioco non trovato con ID: " + dto.getGameUuid()));
 
         UserGameId id = new UserGameId(user.getId(), game.getId());
         if (userGameRepository.existsById(id)) {
@@ -87,13 +88,11 @@ public class UserGameServiceImpl implements UserGameService {
     public UserLibraryResponseDTO getUserLibrary(UUID userUuid) {
         checkAccess(userUuid);
 
-        Optional<User> userOpt = userRepository.findById(userUuid);
-        if (userOpt.isEmpty()) {
-            return new UserLibraryResponseDTO();
-        }
+        User user = userRepository.findById(userUuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato con ID: " + userUuid));
 
         List<UserGame> userGames = userGameRepository.findByUserId(userUuid);
-        return new UserLibraryResponseDTO(userOpt.get(), userGames);
+        return new UserLibraryResponseDTO(user, userGames);
     }
 
     /**

@@ -18,7 +18,7 @@ public interface UserGameService {
     /**
      * Aggiunge un gioco alla libreria di un utente.
      */
-    UserGameResponseDTO addGameToUserLibrary(UserGameRequestDTO userGameRequestDTO);
+    UserGameResponseDTO addGameToUserLibrary(UUID userUuid, UserGameRequestDTO userGameRequestDTO);
 
     /**
      * Recupera un'associazione utente-gioco specifica.
