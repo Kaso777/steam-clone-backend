@@ -22,6 +22,13 @@ Per compilare il progetto, eseguire i test e avviare l'applicazione, assicurarsi
 - Java Development Kit (JDK) 21 o superiore
 - Docker Engine e Docker Compose
 
+## Configurazione locale
+
+Il progetto include un file `.env.example` con valori demo per avviare l'applicazione in locale.
+Per usare variabili personalizzate, copiare `.env.example` in `.env` e modificare i valori secondo il proprio ambiente.
+
+Il file `.env` non deve essere versionato. Le credenziali presenti nella documentazione e nello script SQL sono account demo locali creati per testare l'applicazione.
+
 ## 🚀 Setup e Avvio dell'Applicazione
 
 ### Compilare il progetto e generare il file JAR
