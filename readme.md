@@ -146,7 +146,3 @@ Per eseguire tutti i test del progetto e generare il report di copertura del cod
 3. **Visualizzare il report:**
    
    Il report HTML sarà disponibile in: `target/site/jacoco/index.html`
-
-### 📊 Copertura del Codice
-
-Alla consegna il report registra il **43%** di copertura del codice.
