@@ -1,12 +1,12 @@
 package io.github.kaso777.steamclone.service;
 
-import io.github.kaso777.steamclone.dto.UserRegistrationDTO;
 import io.github.kaso777.steamclone.dto.UserResponseDTO;
 import io.github.kaso777.steamclone.enums.Role;
 import io.github.kaso777.steamclone.exception.*;
 import io.github.kaso777.steamclone.model.User;
 import io.github.kaso777.steamclone.repository.UserRepository;
 import io.github.kaso777.steamclone.dto.UserUpdateDTO;
+import io.github.kaso777.steamclone.dto.auth.RegisterRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -52,37 +52,28 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * Registra un nuovo utente.
-     * Verifica duplicati username e email, e lunghezza password minima.
-     * Codifica la password prima di salvare.
-     * Validazione ruolo utente.
+     * Registra un nuovo utente con ruolo standard ROLE_USER.
      */
     @Override
     @Transactional
-    public UserResponseDTO registerUser(UserRegistrationDTO dto) {
-        if (userRepository.existsByUsername(dto.getUsername())) {
-            throw new DuplicateUsernameException("Username '" + dto.getUsername() + "' gia in uso.");
-        }
-
-        if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new DuplicateEmailException("Email '" + dto.getEmail() + "' gia in uso.");
-        }
-
-        if (dto.getPassword() == null || dto.getPassword().length() < 6) {
+    public UserResponseDTO registerUser(RegisterRequest request) {
+        if (request.getPassword() == null || request.getPassword().length() < 6) {
             throw new IllegalArgumentException("La password deve avere almeno 6 caratteri.");
         }
 
-        User user = new User();
-        user.setUsername(dto.getUsername());
-        user.setEmail(dto.getEmail());
-        user.setPassword(passwordEncoder.encode(dto.getPassword()));
-
-        try {
-            user.setRole(Role.valueOf(dto.getRole()));
-        } catch (IllegalArgumentException e) {
-            throw new InvalidRoleException("Ruolo non valido: " + dto.getRole() +
-                    ". Ruoli consentiti: " + java.util.Arrays.toString(Role.values()));
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new DuplicateUsernameException("Username '" + request.getUsername() + "' gia in uso.");
         }
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new DuplicateEmailException("Email '" + request.getEmail() + "' gia in uso.");
+        }
+
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(Role.ROLE_USER);
 
         return convertToResponseDto(userRepository.save(user));
     }

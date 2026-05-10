@@ -1,8 +1,8 @@
 package io.github.kaso777.steamclone.service;
 
-import io.github.kaso777.steamclone.dto.UserRegistrationDTO;
 import io.github.kaso777.steamclone.dto.UserResponseDTO;
 import io.github.kaso777.steamclone.dto.UserUpdateDTO;
+import io.github.kaso777.steamclone.dto.auth.RegisterRequest;
 import io.github.kaso777.steamclone.model.User;
 
 import java.util.List;
@@ -22,7 +22,7 @@ public interface UserService {
     /**
      * Registra un nuovo utente.
      */
-    UserResponseDTO registerUser(UserRegistrationDTO userRegistrationDTO);
+    UserResponseDTO registerUser(RegisterRequest registerRequest);
 
     /**
      * Recupera un utente tramite ID.

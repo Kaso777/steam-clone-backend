@@ -1,10 +1,8 @@
 package io.github.kaso777.steamclone.controller;
 
 import io.github.kaso777.steamclone.service.UserService;
-import io.github.kaso777.steamclone.dto.UserRegistrationDTO;
 import io.github.kaso777.steamclone.dto.UserResponseDTO;
 import io.github.kaso777.steamclone.dto.UserUpdateDTO;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +13,7 @@ import java.util.UUID;
 
 /**
  * Controller REST per la gestione degli utenti.
- * Espone endpoint per registrazione, recupero, aggiornamento ed eliminazione.
+ * Espone endpoint per recupero, aggiornamento ed eliminazione.
  */
 @RestController
 @RequestMapping("/api/users")
@@ -26,16 +24,6 @@ public class UserController {
     @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
-    }
-
-    /**
-     * Registra un nuovo utente.
-     */
-    @Valid
-    @PostMapping("/register")
-    public ResponseEntity<UserResponseDTO> registerUser(@Valid @RequestBody UserRegistrationDTO userRegistrationDTO) {
-        UserResponseDTO registeredUser = userService.registerUser(userRegistrationDTO);
-        return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
     }
 
     /**
