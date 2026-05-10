@@ -36,21 +36,21 @@ public class TagController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TagDTO> createTag(@Valid @RequestBody TagDTO tagDTO) {
         TagDTO createdTag = tagService.createOrGetTag(tagDTO);
         return new ResponseEntity<>(createdTag, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TagDTO> updateTag(@PathVariable Long id, @Valid @RequestBody TagDTO tagDTO) {
         TagDTO updatedTag = tagService.updateTag(id, tagDTO);
         return new ResponseEntity<>(updatedTag, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteTag(@PathVariable Long id) {
         tagService.deleteTag(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

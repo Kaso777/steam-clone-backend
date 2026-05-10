@@ -26,7 +26,7 @@ public class GameController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GameResponseDTO> createGame(@Valid @RequestBody GameRequestDTO gameRequestDTO) {
         GameResponseDTO newGame = gameService.createGame(gameRequestDTO);
         return new ResponseEntity<>(newGame, HttpStatus.CREATED);
@@ -46,7 +46,7 @@ public class GameController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GameResponseDTO> updateGame(
             @PathVariable UUID id,
             @RequestBody GameUpdateDTO gameupdateDTO) {
@@ -55,7 +55,7 @@ public class GameController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteGame(@PathVariable UUID id) {
         gameService.deleteGame(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
