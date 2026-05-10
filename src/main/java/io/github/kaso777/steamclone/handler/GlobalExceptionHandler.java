@@ -100,6 +100,16 @@ public class GlobalExceptionHandler {
                                 request);
         }
 
+        @ExceptionHandler(IllegalArgumentException.class)
+        public ResponseEntity<ErrorResponseDTO> handleIllegalArgument(IllegalArgumentException ex,
+                        WebRequest request) {
+                return buildErrorResponse(
+                                HttpStatus.BAD_REQUEST,
+                                "Richiesta non valida",
+                                List.of(ex.getMessage()),
+                                request);
+        }
+
         @ExceptionHandler(Exception.class)
         public ResponseEntity<ErrorResponseDTO> handleGenericException(Exception ex, WebRequest request) {
                 return buildErrorResponse(

@@ -42,7 +42,7 @@ public class GameServiceImpl implements GameService {
     @Transactional
     public GameResponseDTO createGame(GameRequestDTO gameRequestDTO) {
         if (gameRepository.findByTitle(gameRequestDTO.getTitle()).isPresent()) {
-            throw new RuntimeException("Un gioco con il titolo '" + gameRequestDTO.getTitle() + "' esiste gia.");
+            throw new IllegalArgumentException("Un gioco con il titolo '" + gameRequestDTO.getTitle() + "' esiste gia.");
         }
 
         Game game = new Game();
@@ -103,7 +103,7 @@ public class GameServiceImpl implements GameService {
             gameRepository.findByTitle(dto.getTitle())
                     .ifPresent(existingGame -> {
                         if (!existingGame.getId().equals(id)) {
-                            throw new RuntimeException(
+                            throw new IllegalArgumentException(
                                     "Un altro gioco con il titolo '" + dto.getTitle() + "' esiste gia.");
                         }
                     });

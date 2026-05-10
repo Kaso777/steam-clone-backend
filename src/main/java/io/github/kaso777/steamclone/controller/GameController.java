@@ -2,7 +2,6 @@ package io.github.kaso777.steamclone.controller;
 
 import io.github.kaso777.steamclone.dto.GameRequestDTO;
 import io.github.kaso777.steamclone.dto.GameResponseDTO;
-import io.github.kaso777.steamclone.exception.ResourceNotFoundException;
 import io.github.kaso777.steamclone.service.GameService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,12 +28,8 @@ public class GameController {
     @PostMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<GameResponseDTO> createGame(@Valid @RequestBody GameRequestDTO gameRequestDTO) {
-        try {
-            GameResponseDTO newGame = gameService.createGame(gameRequestDTO);
-            return new ResponseEntity<>(newGame, HttpStatus.CREATED);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+        GameResponseDTO newGame = gameService.createGame(gameRequestDTO);
+        return new ResponseEntity<>(newGame, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
@@ -55,25 +50,15 @@ public class GameController {
     public ResponseEntity<GameResponseDTO> updateGame(
             @PathVariable UUID id,
             @RequestBody GameUpdateDTO gameupdateDTO) {
-        try {
-            GameResponseDTO updatedGame = gameService.updateGame(id, gameupdateDTO);
-            return new ResponseEntity<>(updatedGame, HttpStatus.OK);
-        } catch (ResourceNotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+        GameResponseDTO updatedGame = gameService.updateGame(id, gameupdateDTO);
+        return new ResponseEntity<>(updatedGame, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteGame(@PathVariable UUID id) {
-        try {
-            gameService.deleteGame(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (ResourceNotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        gameService.deleteGame(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @GetMapping("/search/title")

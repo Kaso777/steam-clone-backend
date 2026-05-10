@@ -45,12 +45,8 @@ public class TagController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<TagDTO> updateTag(@PathVariable Long id, @Valid @RequestBody TagDTO tagDTO) {
-        try {
-            TagDTO updatedTag = tagService.updateTag(id, tagDTO);
-            return new ResponseEntity<>(updatedTag, HttpStatus.OK);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        TagDTO updatedTag = tagService.updateTag(id, tagDTO);
+        return new ResponseEntity<>(updatedTag, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")

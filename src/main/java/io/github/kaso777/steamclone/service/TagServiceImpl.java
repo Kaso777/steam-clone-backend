@@ -1,6 +1,7 @@
 package io.github.kaso777.steamclone.service;
 
 import io.github.kaso777.steamclone.dto.TagDTO;
+import io.github.kaso777.steamclone.exception.ResourceNotFoundException;
 import io.github.kaso777.steamclone.model.Tag;
 import io.github.kaso777.steamclone.repository.TagRepository;
 import org.springframework.stereotype.Service;
@@ -78,13 +79,13 @@ public class TagServiceImpl implements TagService {
      * @param id     ID del tag da aggiornare
      * @param tagDTO nuovi dati del tag
      * @return TagDTO aggiornato
-     * @throws RuntimeException se il tag non viene trovato
+     * @throws ResourceNotFoundException se il tag non viene trovato
      */
     @Override
     @Transactional
     public TagDTO updateTag(Long id, TagDTO tagDTO) {
         Tag tag = tagRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tag non trovato con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Tag non trovato con ID: " + id));
         tag.setName(tagDTO.getName());
         return convertToDto(tagRepository.save(tag));
     }
@@ -95,13 +96,13 @@ public class TagServiceImpl implements TagService {
      * problemi di consistenza nelle relazioni bidirezionali.
      *
      * @param id ID del tag da eliminare
-     * @throws RuntimeException se il tag non viene trovato
+     * @throws ResourceNotFoundException se il tag non viene trovato
      */
     @Override
     @Transactional
     public void deleteTag(Long id) {
         Tag tag = tagRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tag non trovato con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Tag non trovato con ID: " + id));
 
         // Rimuovi il tag da tutti i giochi associati
         tag.getGames().forEach(game -> {

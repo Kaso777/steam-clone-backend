@@ -104,7 +104,7 @@ public class UserGameServiceImpl implements UserGameService {
         checkAccess(userUuid);
 
         UserGame userGame = userGameRepository.findById(new UserGameId(userUuid, gameUuid))
-                .orElseThrow(() -> new RuntimeException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Associazione utente-gioco non trovata per utente " + userUuid + " e gioco " + gameUuid));
 
         userGame.setPlaytimeHours(dto.getPlaytimeHours());
@@ -123,7 +123,7 @@ public class UserGameServiceImpl implements UserGameService {
 
         UserGameId id = new UserGameId(userUuid, gameUuid);
         if (!userGameRepository.existsById(id)) {
-            throw new RuntimeException("Associazione non trovata per utente " + userUuid + " e gioco " + gameUuid);
+            throw new ResourceNotFoundException("Associazione non trovata per utente " + userUuid + " e gioco " + gameUuid);
         }
         userGameRepository.deleteById(id);
     }
